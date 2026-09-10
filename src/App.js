@@ -8,6 +8,8 @@ export default function SalesOrderDashboard() {
     sales: 'ANS',
     jenisAlat: 'Excavator 20 Ton - Bucket',
     jenisSewa: 'S1',
+    tipeDurasi: 'Jam',
+    jumlahDurasi: 8,
     jumlahUnit: 1
   });
 
@@ -167,6 +169,7 @@ export default function SalesOrderDashboard() {
       sales: 'ANS',
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jenisSewa: 'S1',
+      durasiSewaText: '3 Hari',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
       status: 'Unit Ready / Dispatched'
@@ -189,10 +192,12 @@ export default function SalesOrderDashboard() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newOrderNo = 'SO-' + Math.floor(1000 + Math.random() * 9000);
+    const durasiString = `${formData.jumlahDurasi} ${formData.tipeDurasi}`;
     
     const newOrder = {
       id: newOrderNo,
       ...formData,
+      durasiSewaText: durasiString,
       kodeUnit: 'Belum Dipilih',
       status: 'Menunggu Alokasi Unit'
     };
@@ -200,7 +205,7 @@ export default function SalesOrderDashboard() {
     setOrderList([newOrder, ...orderList]);
     setNotification({
       show: true,
-      message: `Sales Order #${newOrderNo} berhasil diterbitkan via ${formData.sales} (Jenis Sewa: ${formData.jenisSewa})!`
+      message: `Sales Order #${newOrderNo} berhasil diterbitkan via ${formData.sales} (Durasi: ${durasiString})!`
     });
 
     setFormData({
@@ -210,6 +215,8 @@ export default function SalesOrderDashboard() {
       sales: 'ANS',
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jenisSewa: 'S1',
+      tipeDurasi: 'Jam',
+      jumlahDurasi: 8,
       jumlahUnit: 1
     });
 
@@ -236,7 +243,7 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) | Jenis Sewa: *${order.jenisSewa}* | Unit *${order.kodeUnit}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) | Durasi: *${order.durasiSewaText}* | Unit *${order.kodeUnit}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
     
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
@@ -261,9 +268,9 @@ export default function SalesOrderDashboard() {
   ];
 
   const jenisSewaOptions = [
-    { label: 'S1', value: 'S1' },
-    { label: 'S2', value: 'S2' },
-    { label: 'S3', value: 'S3' }
+    { label: 'S1 (Sewa Bulanan / Operasional Utama)', value: 'S1' },
+    { label: 'S2 (Sewa Lepas Kunci / Pendek)', value: 'S2' },
+    { label: 'S3 (Sewa Borongan / Project Khusus)', value: 'S3' }
   ];
 
   const filteredOrders = selectedSalesFilter === 'ALL' 
@@ -311,6 +318,7 @@ export default function SalesOrderDashboard() {
               </div>
             </div>
 
+            {/* BARIS INPUT DURASI & SEWA */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Sales / VIA</label>
@@ -320,14 +328,48 @@ export default function SalesOrderDashboard() {
                   ))}
                 </select>
               </div>
+
               <div>
-                <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Jenis Sewa</label>
+                <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Skema Kontrak</label>
                 <select name="jenisSewa" value={formData.jenisSewa} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-amber-600/60 rounded-xl text-amber-300 font-bold text-sm focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
                   {jenisSewaOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
               </div>
+
+              {/* INPUT DURASI SEWA (JAM / HARI / MINGGU / BULAN) */}
+              <div className="md:col-span-2 grid grid-cols-2 gap-2 bg-slate-950 p-2 border border-slate-800 rounded-xl">
+                <div>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Jumlah Waktu</label>
+                  <input 
+                    type="number" 
+                    name="jumlahDurasi" 
+                    min="1" 
+                    value={formData.jumlahDurasi} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Satuan Durasi</label>
+                  <select 
+                    name="tipeDurasi" 
+                    value={formData.tipeDurasi} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-teal-300 font-bold text-sm focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer"
+                  >
+                    <option value="Jam">Jam</option>
+                    <option value="Hari">Hari</option>
+                    <option value="Minggu">Minggu</option>
+                    <option value="Bulan">Bulan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jenis Alat & Attachment</label>
                 <select name="jenisAlat" value={formData.jenisAlat} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
@@ -380,16 +422,17 @@ export default function SalesOrderDashboard() {
                 <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">No. Order</th>
                   <th className="py-3 px-4">Customer / Proyek</th>
-                  <th className="py-3 px-4">Sales / Sewa</th>
+                  <th className="py-3 px-4">Sales / Skema</th>
+                  <th className="py-3 px-4 text-teal-400">Durasi Sewa</th>
                   <th className="py-3 px-4">Jenis Alat</th>
                   <th className="py-3 px-4 text-amber-400">Alokasi Kode Unit</th>
-                  <th className="py-3 px-4">Status Order & Aksi WA</th>
+                  <th className="py-3 px-4">Status & Aksi WA</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-slate-500 text-sm">
+                    <td colSpan="7" className="py-8 text-center text-slate-500 text-sm">
                       Tidak ada data order untuk sales "{selectedSalesFilter}"
                     </td>
                   </tr>
@@ -405,13 +448,18 @@ export default function SalesOrderDashboard() {
                         <div><span className="px-2 py-0.5 bg-slate-800 text-slate-200 font-bold text-xs rounded-lg">{order.sales}</span></div>
                         <div><span className="px-2 py-0.5 bg-amber-950 text-amber-300 font-bold text-xs rounded-lg border border-amber-600/50">{order.jenisSewa}</span></div>
                       </td>
+                      <td className="py-4 px-4">
+                        <span className="px-2.5 py-1 bg-teal-950 text-teal-300 font-mono font-bold text-xs rounded-lg border border-teal-600/50">
+                          {order.durasiSewaText}
+                        </span>
+                      </td>
                       <td className="py-4 px-4 text-slate-300 font-medium">{order.jenisAlat}</td>
                       
                       <td className="py-4 px-4">
                         <select 
                           value={order.kodeUnit} 
                           onChange={(e) => updateKodeUnit(order.id, e.target.value)}
-                          className="text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500 max-w-[180px]"
+                          className="text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500 max-w-[160px]"
                         >
                           <option value="Belum Dipilih">-- Pilih Unit --</option>
                           {fleetDatabase.map((unit) => (
@@ -435,7 +483,7 @@ export default function SalesOrderDashboard() {
                           onClick={() => sendWhatsAppNotification(order)}
                           className="w-full py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
                         >
-                          💬 Info ke WA ({order.sales})
+                          💬 Info WA ({order.sales})
                         </button>
                       </td>
                     </tr>
