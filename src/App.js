@@ -25,6 +25,20 @@ export default function SalesOrderDashboard() {
     'FAN': '6281234567893'  
   };
 
+  // Data Master Daftar Operator (Bisa disesuaikan dengan nama-nama operator di perusahaan Anda)
+  const operatorDatabase = [
+    'Baharuddin',
+    'Saharuddin',
+    'Rustam',
+    'Amir',
+    'Yusuf',
+    'Aris',
+    'Herman',
+    'Dg. Sila',
+    'Rahmat',
+    'Supriadi'
+  ];
+
   // Data Master Unit lengkap sesuai dengan tabel Excel Anda
   const fleetDatabase = [
     { code: 'EXC.05', class: 'Exca 20 Ton' },
@@ -169,9 +183,11 @@ export default function SalesOrderDashboard() {
       sales: 'ANS',
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jenisSewa: 'S1',
-      durasiSewaText: '3 Hari',
+      rencanaDurasi: '3 Hari',
+      aktualDurasi: '3 Hari (Sesuai Rencana)',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
+      namaOperator: 'Baharuddin',
       status: 'Unit Ready / Dispatched'
     }
   ]);
@@ -197,15 +213,17 @@ export default function SalesOrderDashboard() {
     const newOrder = {
       id: newOrderNo,
       ...formData,
-      durasiSewaText: durasiString,
+      rencanaDurasi: durasiString,
+      aktualDurasi: `${durasiString} (Berjalan)`,
       kodeUnit: 'Belum Dipilih',
+      namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
     };
 
     setOrderList([newOrder, ...orderList]);
     setNotification({
       show: true,
-      message: `Sales Order #${newOrderNo} berhasil diterbitkan via ${formData.sales} (Durasi: ${durasiString})!`
+      message: `Sales Order #${newOrderNo} berhasil diterbitkan!`
     });
 
     setFormData({
@@ -231,6 +249,18 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateOperator = (id, newOperator) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, namaOperator: newOperator } : order
+    ));
+  };
+
+  const updateAktualDurasi = (id, newAktual) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, aktualDurasi: newAktual } : order
+    ));
+  };
+
   const updateStatus = (id, newStatus) => {
     setOrderList(orderList.map(order => 
       order.id === id ? { ...order, status: newStatus } : order
@@ -243,7 +273,7 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) | Durasi: *${order.durasiSewaText}* | Unit *${order.kodeUnit}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `Halo ${order.sales}, Update Sales Order *${order.id}* (${order.customer} - ${order.namaProyek}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Rencana: *${order.rencanaDurasi}* | Aktual Lapangan: *${order.aktualDurasi}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
     
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
@@ -268,9 +298,9 @@ export default function SalesOrderDashboard() {
   ];
 
   const jenisSewaOptions = [
-    { label: 'S1', value: 'S1' },
-    { label: 'S2', value: 'S2' },
-    { label: 'S3', value: 'S3' }
+    { label: 'S1 (Sewa Bulanan / Operasional Utama)', value: 'S1' },
+    { label: 'S2 (Sewa Lepas Kunci / Pendek)', value: 'S2' },
+    { label: 'S3 (Sewa Borongan / Project Khusus)', value: 'S3' }
   ];
 
   const filteredOrders = selectedSalesFilter === 'ALL' 
@@ -318,7 +348,6 @@ export default function SalesOrderDashboard() {
               </div>
             </div>
 
-            {/* BARIS INPUT DURASI & SEWA */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Sales / VIA</label>
@@ -338,10 +367,9 @@ export default function SalesOrderDashboard() {
                 </select>
               </div>
 
-              {/* INPUT DURASI SEWA (JAM / HARI / MINGGU / BULAN) */}
               <div className="md:col-span-2 grid grid-cols-2 gap-2 bg-slate-950 p-2 border border-slate-800 rounded-xl">
                 <div>
-                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Jumlah Waktu</label>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Estimasi Jumlah</label>
                   <input 
                     type="number" 
                     name="jumlahDurasi" 
@@ -353,7 +381,7 @@ export default function SalesOrderDashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Satuan Durasi</label>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Satuan Rencana</label>
                   <select 
                     name="tipeDurasi" 
                     value={formData.tipeDurasi} 
@@ -394,8 +422,8 @@ export default function SalesOrderDashboard() {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2: Alokasi Unit & Status Order</h2>
-              <p className="text-xs text-slate-400">Pilih kode unit untuk pesanan masuk dan koordinasi pengiriman via WhatsApp</p>
+              <h2 className="text-xl font-black text-white">STEP 2: Alokasi Unit, Nama Operator & Durasi Aktual</h2>
+              <p className="text-xs text-slate-400">Kepala operator / admin dapat mengisi unit dan nama operator yang bertugas di lapangan secara real-time</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -423,16 +451,15 @@ export default function SalesOrderDashboard() {
                   <th className="py-3 px-4">No. Order</th>
                   <th className="py-3 px-4">Customer / Proyek</th>
                   <th className="py-3 px-4">Sales / Skema</th>
-                  <th className="py-3 px-4 text-teal-400">Durasi Sewa</th>
-                  <th className="py-3 px-4">Jenis Alat</th>
-                  <th className="py-3 px-4 text-amber-400">Alokasi Kode Unit</th>
+                  <th className="py-3 px-4 text-teal-400">Durasi (Rencana vs Aktual)</th>
+                  <th className="py-3 px-4 text-amber-400">Alokasi Unit & Operator</th>
                   <th className="py-3 px-4">Status & Aksi WA</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="py-8 text-center text-slate-500 text-sm">
+                    <td colSpan="6" className="py-8 text-center text-slate-500 text-sm">
                       Tidak ada data order untuk sales "{selectedSalesFilter}"
                     </td>
                   </tr>
@@ -448,24 +475,53 @@ export default function SalesOrderDashboard() {
                         <div><span className="px-2 py-0.5 bg-slate-800 text-slate-200 font-bold text-xs rounded-lg">{order.sales}</span></div>
                         <div><span className="px-2 py-0.5 bg-amber-950 text-amber-300 font-bold text-xs rounded-lg border border-amber-600/50">{order.jenisSewa}</span></div>
                       </td>
-                      <td className="py-4 px-4">
-                        <span className="px-2.5 py-1 bg-teal-950 text-teal-300 font-mono font-bold text-xs rounded-lg border border-teal-600/50">
-                          {order.durasiSewaText}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-slate-300 font-medium">{order.jenisAlat}</td>
                       
-                      <td className="py-4 px-4">
-                        <select 
-                          value={order.kodeUnit} 
-                          onChange={(e) => updateKodeUnit(order.id, e.target.value)}
-                          className="text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500 max-w-[160px]"
-                        >
-                          <option value="Belum Dipilih">-- Pilih Unit --</option>
-                          {fleetDatabase.map((unit) => (
-                            <option key={unit.code} value={unit.code}>{unit.code} ({unit.class})</option>
-                          ))}
-                        </select>
+                      {/* KOLOM DURASI (RENCANA & UPDATE AKTUAL LAPANGAN) */}
+                      <td className="py-4 px-4 space-y-1.5">
+                        <div className="text-xs text-slate-400 flex items-center gap-1">
+                          <span>Rencana:</span> 
+                          <span className="font-mono font-bold text-slate-200">{order.rencanaDurasi}</span>
+                        </div>
+                        <div>
+                          <input 
+                            type="text" 
+                            value={order.aktualDurasi} 
+                            onChange={(e) => updateAktualDurasi(order.id, e.target.value)}
+                            placeholder="Cth: Selesai 2 hari / Extend +2 hari"
+                            className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-teal-600/60 text-teal-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500"
+                          />
+                        </div>
+                      </td>
+                      
+                      {/* KOLOM UNIT & NAMA OPERATOR */}
+                      <td className="py-4 px-4 space-y-2">
+                        <div>
+                          <label className="block text-[10px] text-slate-400 font-bold uppercase mb-0.5">Kode Unit:</label>
+                          <select 
+                            value={order.kodeUnit} 
+                            onChange={(e) => updateKodeUnit(order.id, e.target.value)}
+                            className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="Belum Dipilih">-- Pilih Unit --</option>
+                            {fleetDatabase.map((unit) => (
+                              <option key={unit.code} value={unit.code}>{unit.code} ({unit.class})</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] text-slate-400 font-bold uppercase mb-0.5">Nama Operator:</label>
+                          <select 
+                            value={order.namaOperator} 
+                            onChange={(e) => updateOperator(order.id, e.target.value)}
+                            className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-emerald-600/60 text-emerald-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-emerald-500"
+                          >
+                            <option value="Belum Ditentukan">-- Pilih Operator --</option>
+                            {operatorDatabase.map((opName) => (
+                              <option key={opName} value={opName}>{opName}</option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
 
                       <td className="py-4 px-4 space-y-2">
