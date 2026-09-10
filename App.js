@@ -33,8 +33,7 @@ export default function SalesOrderForm() {
     { label: 'ANS', value: 'ANS' },
     { label: 'UCI', value: 'UCI' },
     { label: 'CDP', value: 'CDP' },
-    { label: 'FAN', value: 'FAN' },
-    { label: 'MFS', value: 'MFS' }
+    { label: 'FAN', value: 'FAN' }
   ];
 
   const alatOptions = [
