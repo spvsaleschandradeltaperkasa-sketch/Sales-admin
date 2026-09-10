@@ -268,9 +268,9 @@ export default function SalesOrderDashboard() {
   ];
 
   const jenisSewaOptions = [
-    { label: 'S1 (Sewa Bulanan / Operasional Utama)', value: 'S1' },
-    { label: 'S2 (Sewa Lepas Kunci / Pendek)', value: 'S2' },
-    { label: 'S3 (Sewa Borongan / Project Khusus)', value: 'S3' }
+    { label: 'S1', value: 'S1' },
+    { label: 'S2', value: 'S2' },
+    { label: 'S3', value: 'S3' }
   ];
 
   const filteredOrders = selectedSalesFilter === 'ALL' 
