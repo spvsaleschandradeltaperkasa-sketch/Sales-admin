@@ -77,7 +77,7 @@ export default function SalesOrderForm() {
       setLoading(false);
       setNotification({
         show: true,
-        message: `Berhasil! Sales Order #${formData.noOrder} untuk "${formData.customer}" berhasil diterbitkan dan masuk antrean sistem.`,
+        message: `Berhasil! Sales Order #${formData.noOrder} untuk "${formData.customer}" berhasil diterbitkan via ${formData.sales}.`,
         type: 'success'
       });
       setFormData(prev => ({
@@ -91,11 +91,13 @@ export default function SalesOrderForm() {
     }, 1000);
   };
 
+  // Daftar Sales diperbarui lengkap termasuk UCI
   const salesOptions = [
-    { label: 'ANS, value: 'ANS' },
-    { label: 'CDP', value: 'CDP' },
-    { label: 'FAN', value: 'FAN' },
-    { label: 'UCI', value: 'UCI' }
+    { label: 'ANS (Andi Nur Shadrina)', value: 'ANS' },
+    { label: 'UCI (Suci)', value: 'UCI' },
+    { label: 'CDP (Chandra Delta Pusat)', value: 'CDP' },
+    { label: 'FAN (Fandi Ahmad)', value: 'FAN' },
+    { label: 'MFS (Muh. Faisal)', value: 'MFS' }
   ];
 
   const alatOptions = [
@@ -109,7 +111,6 @@ export default function SalesOrderForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-slate-100 p-4 md:p-8 flex flex-col justify-between">
       <div>
-        {/* Top Header Bar */}
         <header className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between pb-6 mb-8 border-b border-slate-800 gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg shadow-blue-900/40 border border-blue-500/30">
@@ -129,10 +130,8 @@ export default function SalesOrderForm() {
           </div>
         </header>
 
-        {/* Form Container Card */}
         <main className="max-w-5xl mx-auto">
           <form onSubmit={handleSubmit} className="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl shadow-black/60 p-6 md:p-10 relative overflow-hidden">
-            {/* Aksen kilau gradasi atas */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-amber-500"></div>
 
             <div className="mb-8">
@@ -141,16 +140,14 @@ export default function SalesOrderForm() {
               <p className="text-slate-400 text-sm mt-1">Lengkapi data kontrak sewa alat berat di bawah ini dengan akurat sebelum diteruskan ke Tim Operasional.</p>
             </div>
 
-            {/* Kotak Notifikasi Alert */}
             {notification.show && (
-              <div className={`mb-8 p-4 rounded-2xl border ${notification.type === 'success' ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200' : 'bg-red-950/60 border-red-500/40 text-red-200'} flex items-start gap-3 shadow-lg animate-fadeIn`}>
+              <div className={`mb-8 p-4 rounded-2xl border ${notification.type === 'success' ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-200' : 'bg-red-950/60 border-red-500/40 text-red-200'} flex items-start gap-3 shadow-lg`}>
                 <svg className="w-5 h-5 mt-0.5 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <div className="text-sm font-medium">{notification.message}</div>
                 <button type="button" onClick={() => setNotification({show: false})} className="ml-auto text-slate-400 hover:text-white font-bold">&times;</button>
               </div>
             )}
 
-            {/* Grid Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-6">
                 <InputField label="No. Sales Order (Otomatis)" id="noOrder" name="noOrder" value={formData.noOrder} disabled />
@@ -172,7 +169,6 @@ export default function SalesOrderForm() {
               </div>
             </div>
 
-            {/* Tombol Aksi */}
             <div className="mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-slate-500 italic">*Pastikan data sudah diverifikasi sesuai PO fisik atau persetujuan WhatsApp customer.</p>
               <button
