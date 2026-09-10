@@ -11,6 +11,7 @@ export default function SalesOrderDashboard() {
   });
 
   const [selectedSalesFilter, setSelectedSalesFilter] = useState('ALL');
+  const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
 
   // Buku nomor WhatsApp Sales (CDP menggunakan 085165659907)
   const salesPhoneBook = {
@@ -20,14 +21,143 @@ export default function SalesOrderDashboard() {
     'FAN': '6281234567893'  
   };
 
-  const unitPool = [
-    'EXC.01', 'EXC.03', 'EXC.04', 'EXC.05', 'EXC.06', 'EXC.07', 'EXC.08', 'EXC.09', 'EXC.11', 'EXC.12', 'EXC.14', 'EXC.15', 'EXC.16', 'EXC.17', 'EXC.18', 'EXC.19', 'EXC.20', 'EXC.21', 'EXC.24', 'EXC.25', 'EXC.26', 'EXC.27', 'EXC.28', 'EXC.29', 'EXC.30', 'EXC.31', 'EXC.32', 'EXC.33', 'EXC.34', 'EXC.35', 'EXC.36', 'EXC.37', 'EXC.38', 'EXC.39', 'EXC.40', 'EXC.41', 'EXC.42', 'EXC.43', 'EXC.44', 'EXC.45', 'EXC.46', 'EXC.47', 'EXC.48', 'EXC.49', 'EXC.50', 'EXC.51', 'EXC.52', 'EXC.53', 'EXC.54', 'EXC.55', 'EXC.56', 'EXC.57', 'EXC.58', 'EXC.59', 'EXC.60', 'EXC.61', 'EXC.62', 'EXC.63', 'EXC.64', 'EXC.65', 'EXC.66', 'EXC.67', 'EXC.68', 'EXC.69', 'EXC.70', 'EXC.71', 'EXC.72', 'EXC.73', 'EXC.74', 'EXC.75', 'EXC.76', 'EXC.77', 'EXC.80', 'EXC.81', 'EXC.82', 'EXC.83', 'EXC.84', 'EXC.85', 'EXC.86', 'EXC.87', 'EXC.88', 'EXC.89', 'EXC.90', 'EXC.91', 'EXC.92', 'EXC.93', 'EXC.94', 'EXC.95', 'EXC.96', 'EXC.97', 'EXC.98', 'EXC.201', 'EXC.202', 'EXC.203', 'EXC.204', 'EXC.205', 'EXC.206', 'EXC.207', 'EXC.208', 'EXC.209', 'EXC.210', 'EXC.211', 'EXC.212', 'EXC.213', 'EXC.214', 'EXC.215', 'EXC.301', 'EXC.302', 'EXC.303', 'EXC.304', 'EXC.305', 'EXC.306', 'EXC.307', 'EXC.308', 'EXC.309',
-    'MG-1', 'MG-2', 'MG-3', 'MG-4', 'MG-5',
-    'MC.01',
-    'D.02', 'D.03',
-    'VBR.01', 'VBR.04', 'VBR.05', 'VBR.06', 'VBR.07', 'VBR.08', 'VBR.09', 'VBR.TW.02',
-    'DT.01', 'DT.02', 'DT.03', 'DT.05', 'DT.07', 'DT.08', 'DT.09', 'DT.10', 'DT.11', 'DT.12', 'DT.15', 'DT.16', 'DT.17', 'DT.18', 'DT.19', 'DT.20', 'DT.21', 'DT.22', 'DT.23', 'DT.24', 'DT.25', 'DT.26', 'DT.27', 'DT.28', 'DT.29'
+  // Data Master Unit lengkap sesuai dengan tabel Excel Anda
+  const fleetDatabase = [
+    { code: 'EXC.05', class: 'Exca 20 Ton' },
+    { code: 'EXC.01', class: 'Exca 20 Ton' },
+    { code: 'EXC.03', class: 'Exca 20 Ton' },
+    { code: 'EXC.04', class: 'Exca 20 Ton' },
+    { code: 'EXC.06', class: 'Exca 20 Ton' },
+    { code: 'EXC.07', class: 'Exca 20 Ton' },
+    { code: 'EXC.08', class: 'Exca 20 Ton' },
+    { code: 'EXC.09', class: 'Exca 20 Ton' },
+    { code: 'EXC.11', class: 'Exca 20 Ton' },
+    { code: 'EXC.12', class: 'Exca 20 Ton' },
+    { code: 'EXC.14', class: 'Exca 20 Ton' },
+    { code: 'EXC.15', class: 'Exca 20 Ton' },
+    { code: 'EXC.16', class: 'Exca 20 Ton' },
+    { code: 'EXC.17', class: 'Exca 20 Ton' },
+    { code: 'EXC.18', class: 'Exca 20 Ton' },
+    { code: 'EXC.19', class: 'Exca 20 Ton' },
+    { code: 'EXC.20', class: 'Exca Mini' },
+    { code: 'EXC.21', class: 'Exca Mini' },
+    { code: 'EXC.24', class: 'Exca Mini' },
+    { code: 'EXC.25', class: 'Exca Mini' },
+    { code: 'EXC.26', class: 'Exca Mini' },
+    { code: 'EXC.27', class: 'Exca Mini' },
+    { code: 'EXC.28', class: 'Exca Mini' },
+    { code: 'EXC.29', class: 'Exca Mini' },
+    { code: 'EXC.30', class: 'Exca Mini' },
+    { code: 'EXC.31', class: 'Exca Mini' },
+    { code: 'EXC.32', class: 'Exca Mini' },
+    { code: 'EXC.33', class: 'Exca Mini' },
+    { code: 'EXC.34', class: 'Exca Mini' },
+    { code: 'EXC.35', class: 'Exca Mini' },
+    { code: 'EXC.36', class: 'Exca Mini' },
+    { code: 'EXC.37', class: 'Exca Mini' },
+    { code: 'EXC.38', class: 'Exca Mini' },
+    { code: 'EXC.39', class: 'Exca Mini' },
+    { code: 'EXC.40', class: 'Exca 20 Ton' },
+    { code: 'EXC.41', class: 'Exca 20 Ton' },
+    { code: 'EXC.42', class: 'Exca 20 Ton' },
+    { code: 'EXC.43', class: 'Exca 20 Ton' },
+    { code: 'EXC.44', class: 'Exca 20 Ton' },
+    { code: 'EXC.45', class: 'Exca 20 Ton' },
+    { code: 'EXC.46', class: 'Exca 20 Ton' },
+    { code: 'EXC.47', class: 'Exca 20 Ton' },
+    { code: 'EXC.48', class: 'Exca 20 Ton' },
+    { code: 'EXC.49', class: 'Exca 20 Ton' },
+    { code: 'EXC.50', class: 'Exca 20 Ton' },
+    { code: 'EXC.51', class: 'Exca 20 Ton' },
+    { code: 'EXC.52', class: 'Exca 20 Ton' },
+    { code: 'EXC.53', class: 'Exca 20 Ton' },
+    { code: 'EXC.54', class: 'Exca 20 Ton' },
+    { code: 'EXC.55', class: 'Exca 20 Ton' },
+    { code: 'EXC.56', class: 'Exca 20 Ton' },
+    { code: 'EXC.57', class: 'Exca 20 Ton' },
+    { code: 'EXC.58', class: 'Exca 20 Ton' },
+    { code: 'EXC.59', class: 'Exca 20 Ton' },
+    { code: 'EXC.60', class: 'Exca Mini' },
+    { code: 'EXC.61', class: 'Exca Mini' },
+    { code: 'EXC.62', class: 'Exca Mini' },
+    { code: 'EXC.63', class: 'Exca Mini' },
+    { code: 'EXC.64', class: 'Exca Mini' },
+    { code: 'EXC.65', class: 'Exca Mini' },
+    { code: 'EXC.66', class: 'Exca Mini' },
+    { code: 'EXC.67', class: 'Exca Mini' },
+    { code: 'EXC.68', class: 'Exca Mini' },
+    { code: 'EXC.69', class: 'Exca Mini' },
+    { code: 'EXC.70', class: 'Exca Mini' },
+    { code: 'EXC.71', class: 'Exca Mini' },
+    { code: 'EXC.72', class: 'Exca Mini' },
+    { code: 'EXC.73', class: 'Exca Mini' },
+    { code: 'EXC.74', class: 'Exca Mini' },
+    { code: 'EXC.75', class: 'Exca Mini' },
+    { code: 'EXC.76', class: 'Exca Mini' },
+    { code: 'EXC.77', class: 'Exca Mini' },
+    { code: 'EXC.80', class: 'Exca 20 Ton' },
+    { code: 'EXC.81', class: 'Exca 20 Ton' },
+    { code: 'EXC.82', class: 'Exca 20 Ton' },
+    { code: 'EXC.83', class: 'Exca 20 Ton' },
+    { code: 'EXC.84', class: 'Exca 20 Ton' },
+    { code: 'EXC.85', class: 'Exca 20 Ton' },
+    { code: 'EXC.86', class: 'Exca 20 Ton' },
+    { code: 'EXC.87', class: 'Exca 20 Ton' },
+    { code: 'EXC.88', class: 'Exca 20 Ton' },
+    { code: 'EXC.89', class: 'Exca 20 Ton' },
+    { code: 'EXC.90', class: 'Exca 20 Ton' },
+    { code: 'EXC.201', class: 'Exca 20 Ton' },
+    { code: 'EXC.202', class: 'Exca 20 Ton' },
+    { code: 'EXC.203', class: 'Exca 20 Ton' },
+    { code: 'EXC.204', class: 'Exca 20 Ton' },
+    { code: 'EXC.205', class: 'Exca 20 Ton' },
+    { code: 'EXC.206', class: 'Exca 20 Ton' },
+    { code: 'EXC.207', class: 'Exca 20 Ton' },
+    { code: 'EXC.208', class: 'Exca 20 Ton' },
+    { code: 'EXC.209', class: 'Exca 20 Ton' },
+    { code: 'EXC.210', class: 'Exca 20 Ton' },
+    { code: 'EXC.301', class: 'Exca 30 Ton' },
+    { code: 'EXC.302', class: 'Exca 30 Ton' },
+    { code: 'EXC.303', class: 'Exca 30 Ton' },
+    { code: 'MG-1', class: 'Motor Grader' },
+    { code: 'MG-2', class: 'Motor Grader' },
+    { code: 'MG-3', class: 'Motor Grader' },
+    { code: 'MG-4', class: 'Motor Grader' },
+    { code: 'MC.01', class: 'Mobile Crane' },
+    { code: 'D.02', class: 'Medium Dozer' },
+    { code: 'D.03', class: 'Medium Dozer' },
+    { code: 'VBR.01', class: 'Vibro 10 Ton' },
+    { code: 'VBR.04', class: 'Vibro 10 Ton' },
+    { code: 'VBR.05', class: 'Vibro 10 Ton' },
+    { code: 'VBR.06', class: 'Vibro 10 Ton' },
+    { code: 'VBR.07', class: 'Vibro 10 Ton' },
+    { code: 'EXC.91', class: 'Exca 20 Ton' },
+    { code: 'EXC.304', class: 'Exca 30 Ton' },
+    { code: 'EXC.211', class: 'Exca 20 Ton' },
+    { code: 'EXC.212', class: 'Exca 20 Ton' },
+    { code: 'EXC.213', class: 'Exca 20 Ton' },
+    { code: 'EXC.214', class: 'Exca 20 Ton' },
+    { code: 'EXC.215', class: 'Exca 20 Ton' },
+    { code: 'EXC.92', class: 'Exca 20 Ton' },
+    { code: 'EXC.93', class: 'Exca 20 Ton' },
+    { code: 'EXC.94', class: 'Exca 20 Ton' },
+    { code: 'EXC.95', class: 'Exca 20 Ton' },
+    { code: 'EXC.96', class: 'Exca 20 Ton' },
+    { code: 'EXC.97', class: 'Exca 20 Ton' },
+    { code: 'EXC.98', class: 'Exca 20 Ton' },
+    { code: 'EXC.305', class: 'Exca 30 Ton' },
+    { code: 'EXC.306', class: 'Exca 30 Ton' },
+    { code: 'EXC.307', class: 'Exca 30 Ton' },
+    { code: 'EXC.308', class: 'Exca 30 Ton' },
+    { code: 'VBR.09', class: 'Vibro 10 Ton' },
+    { code: 'VBR.08', class: 'Vibro 10 Ton' },
+    { code: 'MG-5', class: 'Motor Grader' },
+    { code: 'EXC.309', class: 'Exca 30 Ton' },
+    { code: 'VBR.TW.02', class: 'Vibro 10 Ton' }
   ];
+
+  // Ekstrak daftar kode unit untuk dropdown pilihan alokasi di Step 2
+  const unitPool = fleetDatabase.map(item => item.code);
 
   const [orderList, setOrderList] = useState([
     {
@@ -43,7 +173,7 @@ export default function SalesOrderDashboard() {
     }
   ]);
 
-  // State baru khusus monitoring kondisi fisik unit untuk Kepala Operator
+  // State status fisik unit untuk Kepala Operator
   const [fleetStatus, setFleetStatus] = useState({
     'EXC.08': 'Working',
     'EXC.01': 'Standby',
@@ -123,13 +253,8 @@ export default function SalesOrderDashboard() {
   const alatOptions = [
     { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
     { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
-    { label: 'Excavator 20 Ton - Bucket & Breaker', value: 'Excavator 20 Ton - Bucket & Breaker' },
     { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
-    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
-    { label: 'Excavator Mini SY55 - Bucket & Breaker', value: 'Excavator Mini SY55 - Bucket & Breaker' },
     { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY75 - Bucket' },
-    { label: 'Excavator Mini SY75 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
-    { label: 'Excavator Mini SY75 - Bucket & Breaker', value: 'Excavator Mini SY75 - Bucket & Breaker' },
     { label: 'Vibro Roller', value: 'Vibro Roller' },
     { label: 'Bulldozer', value: 'Bulldozer' },
     { label: 'Motor Grader', value: 'Motor Grader' }
@@ -138,6 +263,12 @@ export default function SalesOrderDashboard() {
   const filteredOrders = selectedSalesFilter === 'ALL' 
     ? orderList 
     : orderList.filter(order => order.sales === selectedSalesFilter);
+
+  const filteredFleet = selectedFleetFilter === 'ALL'
+    ? fleetDatabase
+    : fleetDatabase.filter(item => item.class === selectedFleetFilter);
+
+  const uniqueClasses = ['ALL', ...new Set(fleetDatabase.map(item => item.class))];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
@@ -264,11 +395,11 @@ export default function SalesOrderDashboard() {
                         <select 
                           value={order.kodeUnit} 
                           onChange={(e) => updateKodeUnit(order.id, e.target.value)}
-                          className="text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500"
+                          className="text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500 max-w-[180px]"
                         >
                           <option value="Belum Dipilih">-- Pilih Unit --</option>
-                          {unitPool.map((unit) => (
-                            <option key={unit} value={unit}>{unit}</option>
+                          {fleetDatabase.map((unit) => (
+                            <option key={unit.code} value={unit.code}>{unit.code} ({unit.class})</option>
                           ))}
                         </select>
                       </td>
@@ -299,26 +430,45 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* STEP 3: MONITORING KONDISI ARMADA (KHUSUS KEPALA OPERATOR) */}
+        {/* STEP 3: MONITORING KONDISI ARMADA LENGKAP */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-          <div className="mb-6">
-            <h2 className="text-xl font-black text-white">STEP 3: Monitoring Kondisi Fisik Armada</h2>
-            <p className="text-xs text-slate-400">Pantau status real-time unit armada (Standby, Working, Breakdown) terlepas dari nomor order</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-black text-white">STEP 3: Monitoring Kondisi Fisik Armada</h2>
+              <p className="text-xs text-slate-400">Pantau seluruh unit armada CV Chandra Delta Perkasa (*Standby, Working, Breakdown*)</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl max-w-full overflow-x-auto">
+              <span className="text-xs font-bold text-slate-400 px-2">Filter Kelas:</span>
+              {uniqueClasses.map((cls) => (
+                <button
+                  key={cls}
+                  onClick={() => setSelectedFleetFilter(cls)}
+                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    selectedFleetFilter === cls 
+                      ? 'bg-amber-600 text-white shadow' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {cls}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2">
-            {unitPool.slice(0, 15).map((unit) => {
-              const currentCondition = fleetStatus[unit] || 'Standby';
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
+            {filteredFleet.map((item) => {
+              const currentCondition = fleetStatus[item.code] || 'Standby';
               return (
-                <div key={unit} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                <div key={item.code} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
                   <div>
-                    <div className="font-mono font-bold text-white text-sm">{unit}</div>
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">Unit Armada</div>
+                    <div className="font-mono font-bold text-white text-sm">{item.code}</div>
+                    <div className="text-[10px] text-amber-400 font-semibold">{item.class}</div>
                   </div>
 
                   <select
                     value={currentCondition}
-                    onChange={(e) => updateFleetCondition(unit, e.target.value)}
+                    onChange={(e) => updateFleetCondition(item.code, e.target.value)}
                     className={`text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer ${
                       currentCondition === 'Working' 
                         ? 'bg-blue-950/50 border-blue-600 text-blue-300' 
@@ -335,7 +485,6 @@ export default function SalesOrderDashboard() {
               );
             })}
           </div>
-          <p className="text-[11px] text-slate-500 mt-4 italic">* Menampilkan sebagian daftar unit utama. Kepala Operator dapat mengubah status fisik unit kapan saja.</p>
         </div>
 
       </div>
