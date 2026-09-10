@@ -39,9 +39,16 @@ export default function SalesOrderDashboard() {
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
-      status: 'Standby di Lokasi'
+      status: 'Unit Ready / Dispatched'
     }
   ]);
+
+  // State baru khusus monitoring kondisi fisik unit untuk Kepala Operator
+  const [fleetStatus, setFleetStatus] = useState({
+    'EXC.08': 'Working',
+    'EXC.01': 'Standby',
+    'MG-1': 'Breakdown'
+  });
 
   const [notification, setNotification] = useState({ show: false, message: '' });
 
@@ -93,9 +100,13 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateFleetCondition = (unitCode, condition) => {
+    setFleetStatus(prev => ({ ...prev, [unitCode]: condition }));
+  };
+
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) unit *${order.kodeUnit}* saat ini berstatus: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) unit *${order.kodeUnit}* status order: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
     
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
@@ -128,29 +139,11 @@ export default function SalesOrderDashboard() {
     ? orderList 
     : orderList.filter(order => order.sales === selectedSalesFilter);
 
-  // Helper styling warna latar belakang dropdown status berdasarkan kondisinya
-  const getStatusBadgeStyle = (status) => {
-    switch (status) {
-      case 'Menunggu Alokasi Unit':
-        return 'bg-amber-950/50 border-amber-600 text-amber-300';
-      case 'Unit Ready / Dispatched':
-        return 'bg-blue-950/50 border-blue-600 text-blue-300';
-      case 'Standby di Lokasi':
-        return 'bg-teal-950/50 border-teal-600 text-teal-300';
-      case 'Breakdown':
-        return 'bg-rose-950/50 border-rose-600 text-rose-300 animate-pulse';
-      case 'Selesai / Close':
-        return 'bg-slate-800 border-slate-600 text-slate-400';
-      default:
-        return 'bg-slate-950 border-slate-700 text-slate-200';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
       <div className="max-w-6xl w-full space-y-8">
         
-        {/* FORM SECTION */}
+        {/* STEP 1: FORM SALES ORDER */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <h1 className="text-2xl font-black text-white mb-1">STEP 1: Form Sales Order</h1>
           <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">CV Chandra Delta Perkasa - Rental Alat Berat Sulawesi</p>
@@ -207,12 +200,12 @@ export default function SalesOrderDashboard() {
           </form>
         </div>
 
-        {/* REKAP TABLE SECTION */}
+        {/* STEP 2: KEPALA OPERATOR & ALOKASI UNIT */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2: Kepala Operator & Alokasi Unit</h2>
-              <p className="text-xs text-slate-400">Kelola kode unit, pantau status operasional alat (Standby / Breakdown), dan koordinasi WhatsApp</p>
+              <h2 className="text-xl font-black text-white">STEP 2: Alokasi Unit & Status Order</h2>
+              <p className="text-xs text-slate-400">Pilih kode unit untuk pesanan masuk dan koordinasi pengiriman via WhatsApp</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -242,7 +235,7 @@ export default function SalesOrderDashboard() {
                   <th className="py-3 px-4">Sales</th>
                   <th className="py-3 px-4">Jenis Alat</th>
                   <th className="py-3 px-4 text-amber-400">Alokasi Kode Unit</th>
-                  <th className="py-3 px-4">Status & Kondisi Alat (Kepala Operator)</th>
+                  <th className="py-3 px-4">Status Order & Aksi WA</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
@@ -284,12 +277,10 @@ export default function SalesOrderDashboard() {
                         <select 
                           value={order.status} 
                           onChange={(e) => updateStatus(order.id, e.target.value)}
-                          className={`w-full text-xs font-bold px-3 py-2 rounded-lg border outline-none cursor-pointer ${getStatusBadgeStyle(order.status)}`}
+                          className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 outline-none cursor-pointer"
                         >
                           <option value="Menunggu Alokasi Unit">⏳ Menunggu Alokasi Unit</option>
                           <option value="Unit Ready / Dispatched">🚀 Unit Ready / Dispatched</option>
-                          <option value="Standby di Lokasi">🟢 Standby di Lokasi</option>
-                          <option value="Breakdown">⚠️ Breakdown (Kendala/Rusak)</option>
                           <option value="Selesai / Close">✅ Selesai / Close</option>
                         </select>
 
@@ -306,6 +297,45 @@ export default function SalesOrderDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* STEP 3: MONITORING KONDISI ARMADA (KHUSUS KEPALA OPERATOR) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+          <div className="mb-6">
+            <h2 className="text-xl font-black text-white">STEP 3: Monitoring Kondisi Fisik Armada</h2>
+            <p className="text-xs text-slate-400">Pantau status real-time unit armada (Standby, Working, Breakdown) terlepas dari nomor order</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2">
+            {unitPool.slice(0, 15).map((unit) => {
+              const currentCondition = fleetStatus[unit] || 'Standby';
+              return (
+                <div key={unit} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <div className="font-mono font-bold text-white text-sm">{unit}</div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">Unit Armada</div>
+                  </div>
+
+                  <select
+                    value={currentCondition}
+                    onChange={(e) => updateFleetCondition(unit, e.target.value)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer ${
+                      currentCondition === 'Working' 
+                        ? 'bg-blue-950/50 border-blue-600 text-blue-300' 
+                        : currentCondition === 'Standby' 
+                        ? 'bg-teal-950/50 border-teal-600 text-teal-300' 
+                        : 'bg-rose-950/50 border-rose-600 text-rose-300 animate-pulse'
+                    }`}
+                  >
+                    <option value="Standby">🟢 Standby</option>
+                    <option value="Working">🔵 Working</option>
+                    <option value="Breakdown">⚠️ Breakdown</option>
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-4 italic">* Menampilkan sebagian daftar unit utama. Kepala Operator dapat mengubah status fisik unit kapan saja.</p>
         </div>
 
       </div>
