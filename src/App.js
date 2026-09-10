@@ -16,7 +16,7 @@ export default function SalesOrderDashboard() {
   const salesPhoneBook = {
     'ANS': '6285165659907', 
     'UCI': '6281234567891', 
-    'CDP': '6285165659907', // Nomor CDP
+    'CDP': '6285165659907', 
     'FAN': '6281234567893'  
   };
 
@@ -39,7 +39,7 @@ export default function SalesOrderDashboard() {
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
-      status: 'Unit Ready / Dispatched'
+      status: 'Standby di Lokasi'
     }
   ]);
 
@@ -95,7 +95,7 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) sudah dialokasikan unit *${order.kodeUnit}* dengan status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) unit *${order.kodeUnit}* saat ini berstatus: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
     
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
@@ -127,6 +127,24 @@ export default function SalesOrderDashboard() {
   const filteredOrders = selectedSalesFilter === 'ALL' 
     ? orderList 
     : orderList.filter(order => order.sales === selectedSalesFilter);
+
+  // Helper styling warna latar belakang dropdown status berdasarkan kondisinya
+  const getStatusBadgeStyle = (status) => {
+    switch (status) {
+      case 'Menunggu Alokasi Unit':
+        return 'bg-amber-950/50 border-amber-600 text-amber-300';
+      case 'Unit Ready / Dispatched':
+        return 'bg-blue-950/50 border-blue-600 text-blue-300';
+      case 'Standby di Lokasi':
+        return 'bg-teal-950/50 border-teal-600 text-teal-300';
+      case 'Breakdown':
+        return 'bg-rose-950/50 border-rose-600 text-rose-300 animate-pulse';
+      case 'Selesai / Close':
+        return 'bg-slate-800 border-slate-600 text-slate-400';
+      default:
+        return 'bg-slate-950 border-slate-700 text-slate-200';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
@@ -193,8 +211,8 @@ export default function SalesOrderDashboard() {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2: Tabel Rekap & Alokasi Kode Unit</h2>
-              <p className="text-xs text-slate-400">Pantau status alokasi unit dan koordinasi real-time dengan tim sales</p>
+              <h2 className="text-xl font-black text-white">STEP 2: Kepala Operator & Alokasi Unit</h2>
+              <p className="text-xs text-slate-400">Kelola kode unit, pantau status operasional alat (Standby / Breakdown), dan koordinasi WhatsApp</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -224,7 +242,7 @@ export default function SalesOrderDashboard() {
                   <th className="py-3 px-4">Sales</th>
                   <th className="py-3 px-4">Jenis Alat</th>
                   <th className="py-3 px-4 text-amber-400">Alokasi Kode Unit</th>
-                  <th className="py-3 px-4">Status & Aksi WA</th>
+                  <th className="py-3 px-4">Status & Kondisi Alat (Kepala Operator)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
@@ -266,17 +284,13 @@ export default function SalesOrderDashboard() {
                         <select 
                           value={order.status} 
                           onChange={(e) => updateStatus(order.id, e.target.value)}
-                          className={`w-full text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer ${
-                            order.status === 'Menunggu Alokasi Unit' 
-                              ? 'bg-amber-950/50 border-amber-600 text-amber-300' 
-                              : order.status === 'Unit Ready / Dispatched' 
-                              ? 'bg-emerald-950/50 border-emerald-600 text-emerald-300' 
-                              : 'bg-blue-950/50 border-blue-600 text-blue-300'
-                          }`}
+                          className={`w-full text-xs font-bold px-3 py-2 rounded-lg border outline-none cursor-pointer ${getStatusBadgeStyle(order.status)}`}
                         >
-                          <option value="Menunggu Alokasi Unit">Menunggu Alokasi Unit</option>
-                          <option value="Unit Ready / Dispatched">Unit Ready / Dispatched</option>
-                          <option value="Selesai / Close">Selesai / Close</option>
+                          <option value="Menunggu Alokasi Unit">⏳ Menunggu Alokasi Unit</option>
+                          <option value="Unit Ready / Dispatched">🚀 Unit Ready / Dispatched</option>
+                          <option value="Standby di Lokasi">🟢 Standby di Lokasi</option>
+                          <option value="Breakdown">⚠️ Breakdown (Kendala/Rusak)</option>
+                          <option value="Selesai / Close">✅ Selesai / Close</option>
                         </select>
 
                         <button 
