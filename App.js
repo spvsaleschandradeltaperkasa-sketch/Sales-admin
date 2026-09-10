@@ -93,11 +93,10 @@ export default function SalesOrderForm() {
 
   // Daftar Sales diperbarui lengkap termasuk UCI
   const salesOptions = [
-    { label: 'ANS (Andi Nur Shadrina)', value: 'ANS' },
-    { label: 'UCI (Suci)', value: 'UCI' },
-    { label: 'CDP (Chandra Delta Pusat)', value: 'CDP' },
-    { label: 'FAN (Fandi Ahmad)', value: 'FAN' },
-    { label: 'MFS (Muh. Faisal)', value: 'MFS' }
+    { label: 'ANS', value: 'ANS' },
+    { label: 'CDP', value: 'CDP' },
+    { label: 'FAN', value: 'FAN' },
+    { label: 'UCI', value: 'UCI' }
   ];
 
   const alatOptions = [
