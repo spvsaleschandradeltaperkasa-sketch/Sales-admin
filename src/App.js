@@ -10,10 +10,16 @@ export default function SalesOrderDashboard() {
     jumlahUnit: 1
   });
 
-  // State untuk filter sales di tabel rekap ('ALL' atau nama sales tertentu)
   const [selectedSalesFilter, setSelectedSalesFilter] = useState('ALL');
 
-  // Daftar lengkap kode unit CV Chandra Delta Perkasa
+  // Buku nomor WhatsApp Sales (CDP menggunakan 085165659907)
+  const salesPhoneBook = {
+    'ANS': '6285165659907', 
+    'UCI': '6281234567891', 
+    'CDP': '6285165659907', // Nomor CDP
+    'FAN': '6281234567893'  
+  };
+
   const unitPool = [
     'EXC.01', 'EXC.03', 'EXC.04', 'EXC.05', 'EXC.06', 'EXC.07', 'EXC.08', 'EXC.09', 'EXC.11', 'EXC.12', 'EXC.14', 'EXC.15', 'EXC.16', 'EXC.17', 'EXC.18', 'EXC.19', 'EXC.20', 'EXC.21', 'EXC.24', 'EXC.25', 'EXC.26', 'EXC.27', 'EXC.28', 'EXC.29', 'EXC.30', 'EXC.31', 'EXC.32', 'EXC.33', 'EXC.34', 'EXC.35', 'EXC.36', 'EXC.37', 'EXC.38', 'EXC.39', 'EXC.40', 'EXC.41', 'EXC.42', 'EXC.43', 'EXC.44', 'EXC.45', 'EXC.46', 'EXC.47', 'EXC.48', 'EXC.49', 'EXC.50', 'EXC.51', 'EXC.52', 'EXC.53', 'EXC.54', 'EXC.55', 'EXC.56', 'EXC.57', 'EXC.58', 'EXC.59', 'EXC.60', 'EXC.61', 'EXC.62', 'EXC.63', 'EXC.64', 'EXC.65', 'EXC.66', 'EXC.67', 'EXC.68', 'EXC.69', 'EXC.70', 'EXC.71', 'EXC.72', 'EXC.73', 'EXC.74', 'EXC.75', 'EXC.76', 'EXC.77', 'EXC.80', 'EXC.81', 'EXC.82', 'EXC.83', 'EXC.84', 'EXC.85', 'EXC.86', 'EXC.87', 'EXC.88', 'EXC.89', 'EXC.90', 'EXC.91', 'EXC.92', 'EXC.93', 'EXC.94', 'EXC.95', 'EXC.96', 'EXC.97', 'EXC.98', 'EXC.201', 'EXC.202', 'EXC.203', 'EXC.204', 'EXC.205', 'EXC.206', 'EXC.207', 'EXC.208', 'EXC.209', 'EXC.210', 'EXC.211', 'EXC.212', 'EXC.213', 'EXC.214', 'EXC.215', 'EXC.301', 'EXC.302', 'EXC.303', 'EXC.304', 'EXC.305', 'EXC.306', 'EXC.307', 'EXC.308', 'EXC.309',
     'MG-1', 'MG-2', 'MG-3', 'MG-4', 'MG-5',
@@ -87,12 +93,13 @@ export default function SalesOrderDashboard() {
     ));
   };
 
-  // Fungsi untuk mengirim pesan WhatsApp otomatis ke sales
   const sendWhatsAppNotification = (order) => {
+    const phone = salesPhoneBook[order.sales] || '';
     const message = `Halo ${order.sales}, Sales Order *${order.id}* untuk customer *${order.customer}* (${order.namaProyek} - ${order.lokasi}) sudah dialokasikan unit *${order.kodeUnit}* dengan status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
-    // Menggunakan nomor kontak operasional atau umum (bisa disesuaikan)
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+    
+    const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
+    window.open(waUrl, '_blank');
   };
 
   const salesOptions = [
@@ -117,7 +124,6 @@ export default function SalesOrderDashboard() {
     { label: 'Motor Grader', value: 'Motor Grader' }
   ];
 
-  // Menyaring order berdasarkan tombol filter sales yang dipilih
   const filteredOrders = selectedSalesFilter === 'ALL' 
     ? orderList 
     : orderList.filter(order => order.sales === selectedSalesFilter);
@@ -183,7 +189,7 @@ export default function SalesOrderDashboard() {
           </form>
         </div>
 
-        {/* REKAP TABLE SECTION WITH FILTER & WA NOTIFICATION */}
+        {/* REKAP TABLE SECTION */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
@@ -191,7 +197,6 @@ export default function SalesOrderDashboard() {
               <p className="text-xs text-slate-400">Pantau status alokasi unit dan koordinasi real-time dengan tim sales</p>
             </div>
 
-            {/* FILTER BUTTONS */}
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
               <span className="text-xs font-bold text-slate-400 px-2">Filter Sales:</span>
               {['ALL', 'ANS', 'UCI', 'CDP', 'FAN'].map(sal => (
@@ -244,7 +249,6 @@ export default function SalesOrderDashboard() {
                       </td>
                       <td className="py-4 px-4 text-slate-300 font-medium">{order.jenisAlat}</td>
                       
-                      {/* DROPDOWN KODE UNIT */}
                       <td className="py-4 px-4">
                         <select 
                           value={order.kodeUnit} 
@@ -258,7 +262,6 @@ export default function SalesOrderDashboard() {
                         </select>
                       </td>
 
-                      {/* STATUS & TOMBOL WHATSAPP */}
                       <td className="py-4 px-4 space-y-2">
                         <select 
                           value={order.status} 
@@ -280,7 +283,7 @@ export default function SalesOrderDashboard() {
                           onClick={() => sendWhatsAppNotification(order)}
                           className="w-full py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
                         >
-                          💬 Info ke WA Sales
+                          💬 Info ke WA ({order.sales})
                         </button>
                       </td>
                     </tr>
