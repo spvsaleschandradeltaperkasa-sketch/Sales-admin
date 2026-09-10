@@ -12,6 +12,7 @@ export default function SalesOrderDashboard() {
 
   const [selectedSalesFilter, setSelectedSalesFilter] = useState('ALL');
   const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
+  const [fleetSearchQuery, setFleetSearchQuery] = useState('');
 
   // Buku nomor WhatsApp Sales (CDP menggunakan 085165659907)
   const salesPhoneBook = {
@@ -156,9 +157,6 @@ export default function SalesOrderDashboard() {
     { code: 'VBR.TW.02', class: 'Vibro 10 Ton' }
   ];
 
-  // Ekstrak daftar kode unit untuk dropdown pilihan alokasi di Step 2
-  const unitPool = fleetDatabase.map(item => item.code);
-
   const [orderList, setOrderList] = useState([
     {
       id: 'SO-7208',
@@ -264,9 +262,13 @@ export default function SalesOrderDashboard() {
     ? orderList 
     : orderList.filter(order => order.sales === selectedSalesFilter);
 
-  const filteredFleet = selectedFleetFilter === 'ALL'
-    ? fleetDatabase
-    : fleetDatabase.filter(item => item.class === selectedFleetFilter);
+  // Filter gabungan kelas dan pencarian teks untuk database unit
+  const filteredFleet = fleetDatabase.filter(item => {
+    const matchesClass = selectedFleetFilter === 'ALL' || item.class === selectedFleetFilter;
+    const matchesSearch = item.code.toLowerCase().includes(fleetSearchQuery.toLowerCase()) || 
+                          item.class.toLowerCase().includes(fleetSearchQuery.toLowerCase());
+    return matchesClass && matchesSearch;
+  });
 
   const uniqueClasses = ['ALL', ...new Set(fleetDatabase.map(item => item.class))];
 
@@ -430,60 +432,93 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* STEP 3: MONITORING KONDISI ARMADA LENGKAP */}
+        {/* STEP 3: MONITORING KONDISI ARMADA LENGKAP (MODEL TABEL) */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h2 className="text-xl font-black text-white">STEP 3: Monitoring Kondisi Fisik Armada</h2>
-              <p className="text-xs text-slate-400">Pantau seluruh unit armada CV Chandra Delta Perkasa (*Standby, Working, Breakdown*)</p>
+              <p className="text-xs text-slate-400">Total {fleetDatabase.length} unit terdaftar. Kelola status real-time (*Standby, Working, Breakdown*)</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl max-w-full overflow-x-auto">
-              <span className="text-xs font-bold text-slate-400 px-2">Filter Kelas:</span>
-              {uniqueClasses.map((cls) => (
-                <button
-                  key={cls}
-                  onClick={() => setSelectedFleetFilter(cls)}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    selectedFleetFilter === cls 
-                      ? 'bg-amber-600 text-white shadow' 
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
-                >
-                  {cls}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              {/* Kotak Pencarian Unit */}
+              <input 
+                type="text" 
+                placeholder="Cari kode unit (cth: EXC.08)..." 
+                value={fleetSearchQuery}
+                onChange={(e) => setFleetSearchQuery(e.target.value)}
+                className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none w-full md:w-56"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2">
-            {filteredFleet.map((item) => {
-              const currentCondition = fleetStatus[item.code] || 'Standby';
-              return (
-                <div key={item.code} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
-                  <div>
-                    <div className="font-mono font-bold text-white text-sm">{item.code}</div>
-                    <div className="text-[10px] text-amber-400 font-semibold">{item.class}</div>
-                  </div>
+          {/* Filter Kelas Berderet */}
+          <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-2xl mb-6">
+            <span className="text-xs font-bold text-slate-400 px-2">Filter Kelas:</span>
+            {uniqueClasses.map((cls) => (
+              <button
+                key={cls}
+                onClick={() => setSelectedFleetFilter(cls)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                  selectedFleetFilter === cls 
+                    ? 'bg-amber-600 text-white shadow-md' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {cls}
+              </button>
+            ))}
+          </div>
 
-                  <select
-                    value={currentCondition}
-                    onChange={(e) => updateFleetCondition(item.code, e.target.value)}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border outline-none cursor-pointer ${
-                      currentCondition === 'Working' 
-                        ? 'bg-blue-950/50 border-blue-600 text-blue-300' 
-                        : currentCondition === 'Standby' 
-                        ? 'bg-teal-950/50 border-teal-600 text-teal-300' 
-                        : 'bg-rose-950/50 border-rose-600 text-rose-300 animate-pulse'
-                    }`}
-                  >
-                    <option value="Standby">🟢 Standby</option>
-                    <option value="Working">🔵 Working</option>
-                    <option value="Breakdown">⚠️ Breakdown</option>
-                  </select>
-                </div>
-              );
-            })}
+          {/* Tabel Daftar Seluruh Unit */}
+          <div className="overflow-x-auto max-h-[500px] rounded-2xl border border-slate-800">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 bg-slate-950 z-10 border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                <tr>
+                  <th className="py-3 px-4">No</th>
+                  <th className="py-3 px-4">Kode Unit</th>
+                  <th className="py-3 px-4">Kelas / Jenis</th>
+                  <th className="py-3 px-4 text-center">Status Fisik Real-Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-sm">
+                {filteredFleet.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="py-8 text-center text-slate-500 text-sm">
+                      Tidak ditemukan unit dengan kata kunci "{fleetSearchQuery}"
+                    </td>
+                  </tr>
+                ) : (
+                  filteredFleet.map((item, index) => {
+                    const currentCondition = fleetStatus[item.code] || 'Standby';
+                    return (
+                      <tr key={item.code} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="py-3 px-4 font-mono text-xs text-slate-500">{index + 1}</td>
+                        <td className="py-3 px-4 font-mono font-bold text-white">{item.code}</td>
+                        <td className="py-3 px-4 text-xs font-semibold text-amber-400">{item.class}</td>
+                        <td className="py-3 px-4 text-center">
+                          <select
+                            value={currentCondition}
+                            onChange={(e) => updateFleetCondition(item.code, e.target.value)}
+                            className={`text-xs font-bold px-3 py-1.5 rounded-xl border outline-none cursor-pointer transition-all ${
+                              currentCondition === 'Working' 
+                                ? 'bg-blue-950/60 border-blue-500 text-blue-300' 
+                                : currentCondition === 'Standby' 
+                                ? 'bg-teal-950/60 border-teal-500 text-teal-300' 
+                                : 'bg-rose-950/60 border-rose-500 text-rose-300 animate-pulse'
+                            }`}
+                          >
+                            <option value="Standby">🟢 Standby</option>
+                            <option value="Working">🔵 Working</option>
+                            <option value="Breakdown">⚠️ Breakdown</option>
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
