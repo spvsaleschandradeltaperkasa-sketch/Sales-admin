@@ -7,109 +7,108 @@ export default function SalesOrderForm() {
     namaProyek: '',
     lokasi: '',
     sales: 'ANS',
-    jenisAlat: 'Excavator 20 Ton',
+    jenisAlat: 'Excavator 20 Ton - Bucket',
     jumlahUnit: 1,
     durasi: '',
-    status: 'Belum Ada Kode Unit'
+    status: 'Menunggu Kode Unit'
   });
 
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
+  const [notification, setNotification] = useState({ show: false, message: '' });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    
-    // Simulasi pengiriman sukses (Nanti kita sambungkan langsung ke Google Sheets)
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(`Berhasil! Nomor Order ${formData.noOrder} diterbitkan (Status: Belum Ada Kode Unit).`);
-      setFormData({
-        noOrder: 'SO-' + Math.floor(1000 + Math.random() * 9000),
-        customer: '',
-        namaProyek: '',
-        lokasi: '',
-        sales: 'ANS',
-        jenisAlat: 'Excavator 20 Ton',
-        jumlahUnit: 1,
-        durasi: '',
-        status: 'Belum Ada Kode Unit'
-      });
-    }, 1000);
+    setNotification({
+      show: true,
+      message: `Sales Order #${formData.noOrder} berhasil diterbitkan via ${formData.sales}!`
+    });
   };
 
-  return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 flex justify-center items-center font-sans">
-      <div className="bg-gray-900 border border-gray-800 p-8 rounded-2xl w-full max-w-2xl shadow-2xl">
-        <div className="mb-6 border-b border-gray-800 pb-4">
-          <h1 className="text-2xl font-bold text-blue-400">STEP 1: Form Sales Order</h1>
-          <p className="text-sm text-gray-400 mt-1">CV Chandra Delta Perkasa - Rental Alat Berat Sulawesi</p>
-        </div>
+  const salesOptions = [
+    { label: 'ANS', value: 'ANS' },
+    { label: 'UCI', value: 'UCI' },
+    { label: 'CDP', value: 'CDP' },
+    { label: 'FAN', value: 'FAN' }
+  ];
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-900/50 border border-green-600 text-green-200 rounded-xl text-sm">
-            {success}
+  const alatOptions = [
+    { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
+    { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
+    { label: 'Excavator 20 Ton - Bucket & Breaker', value: 'Excavator 20 Ton - Bucket & Breaker' },
+    { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
+    { label: 'Excavator Mini SY55 - Bucket & Breaker', value: 'Excavator Mini SY55 - Bucket & Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY75 - Bucket' },
+    { label: 'Excavator Mini SY75 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket & Breaker', value: 'Excavator Mini SY75 - Bucket & Breaker' },
+    { label: 'Vibro Roller', value: 'Vibro Roller' },
+    { label: 'Bulldozer', value: 'Bulldozer' },
+    { label: 'Motor Grader', value: 'Motor Grader' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex items-center justify-center">
+      <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <h1 className="text-2xl font-black text-white mb-1">STEP 1: Form Sales Order</h1>
+        <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">CV Chandra Delta Perkasa - Rental Alat Berat Sulawesi</p>
+
+        {notification.show && (
+          <div className="mb-6 p-4 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl text-sm font-medium">
+            {notification.message}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">No. Order (Otomatis)</label>
-            <input type="text" value={formData.noOrder} disabled className="w-full p-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-gray-400 cursor-not-allowed font-mono" />
+            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">No. Order (Otomatis)</label>
+            <input type="text" value={formData.noOrder} disabled className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-blue-400 font-mono text-sm" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Customer / PT / CV</label>
-            <input type="text" name="customer" value={formData.customer} onChange={handleChange} required placeholder="Contoh: PT Mahligai Artha Sejahtera" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none" />
+            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama Customer / PT / CV</label>
+            <input type="text" name="customer" value={formData.customer} onChange={handleChange} placeholder="Contoh: PT Mahligai Artha Sejahtera" required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Nama Proyek</label>
-              <input type="text" name="namaProyek" value={formData.namaProyek} onChange={handleChange} required placeholder="Contoh: Land Clearing 44" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none" />
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama Proyek</label>
+              <input type="text" name="namaProyek" value={formData.namaProyek} onChange={handleChange} placeholder="Contoh: Land Clearing" required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Lokasi Proyek</label>
-              <input type="text" name="lokasi" value={formData.lokasi} onChange={handleChange} required placeholder="Contoh: Makassar / Gowa" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none" />
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Lokasi Proyek</label>
+              <input type="text" name="lokasi" value={formData.lokasi} onChange={handleChange} placeholder="Contoh: Takalar" required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Sales / VIA</label>
-              <select name="sales" value={formData.sales} onChange={handleChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none">
-                <option value="ANS">ANS</option>
-                <option value="CDP">CDP</option>
-                <option value="FAN">FAN</option>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Sales / VIA</label>
+              <select name="sales" value={formData.sales} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                {salesOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Jenis Alat</label>
-              <select name="jenisAlat" value={formData.jenisAlat} onChange={handleChange} className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none">
-                <option value="Excavator 20 Ton">Excavator 20 Ton</option>
-                <option value="Excavator Mini">Excavator Mini</option>
-                <option value="Vibro Roller">Vibro Roller</option>
-                <option value="Bulldozer">Bulldozer</option>
-                <option value="Motor Grader">Motor Grader</option>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jenis Alat</label>
+              <select name="jenisAlat" value={formData.jenisAlat} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                {alatOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Jumlah Unit</label>
-              <input type="number" name="jumlahUnit" min="1" value={formData.jumlahUnit} onChange={handleChange} required className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none" />
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jumlah Unit</label>
+              <input type="number" name="jumlahUnit" min="1" value={formData.jumlahUnit} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Durasi Sewa</label>
-            <input type="text" name="durasi" value={formData.durasi} onChange={handleChange} required placeholder="Contoh: 1 Bulan / 100 Jam" className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-blue-500 focus:outline-none" />
-          </div>
-
-          <button type="submit" disabled={loading} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition duration-200 shadow-lg shadow-blue-900/50 mt-6 cursor-pointer">
-            {loading ? 'Memproses Order...' : 'Terbitkan Sales Order (Simpan) →'}
+          <button type="submit" className="w-full mt-6 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer">
+            Terbitkan Sales Order (Simpan) &rarr;
           </button>
         </form>
       </div>
