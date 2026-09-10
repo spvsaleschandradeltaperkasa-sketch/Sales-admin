@@ -621,7 +621,7 @@ export default function SalesOrderDashboard() {
                                 : currentCondition === 'Working' 
                                 ? 'bg-blue-950/60 border-blue-500 text-blue-300' 
                                 : currentCondition === 'Standby' 
-                                ? 'bg-teal-950/60 border-teal-500 text-teal-300' 
+                                ? 'bg-teal-950/60 border-Yellow-500 text-Yellow-300' 
                                 : 'bg-rose-950/60 border-rose-500 text-rose-300 animate-pulse'
                             }`}
                           >
