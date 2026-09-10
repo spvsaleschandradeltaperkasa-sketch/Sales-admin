@@ -7,7 +7,7 @@ export default function SalesOrderForm() {
     namaProyek: '',
     lokasi: '',
     sales: 'ANS',
-    jenisAlat: 'Excavator 20 Ton',
+    jenisAlat: 'Excavator 20 Ton - Bucket',
     jumlahUnit: 1,
     durasi: '',
     status: 'Menunggu Kode Unit'
@@ -28,7 +28,6 @@ export default function SalesOrderForm() {
     });
   };
 
-  // DAFTAR SALES UTAMA (Hanya inisial saja tanpa nama panjang)
   const salesOptions = [
     { label: 'ANS', value: 'ANS' },
     { label: 'UCI', value: 'UCI' },
@@ -36,16 +35,16 @@ export default function SalesOrderForm() {
     { label: 'FAN', value: 'FAN' }
   ];
 
-const alatOptions = [
-    { label: 'Excavator 20 Ton (Bucket)', value: 'Excavator 20 Ton - Bucket' },
-    { label: 'Excavator 20 Ton (Breaker)', value: 'Excavator 20 Ton - Breaker' },
-    { label: 'Excavator 20 Ton (Bucket & Breaker)', value: 'Excavator 20 Ton - Bucket & Breaker' },
-    { label: 'Excavator Mini SY55 (Bucket)', value: 'Excavator Mini SY55 - Bucket' },
-    { label: 'Excavator Mini SY55 (Breaker)', value: 'Excavator Mini SY55 - Breaker' },
-    { label: 'Excavator Mini SY55 (Bucket & Breaker)', value: 'Excavator Mini SY55 - Bucket & Breaker' },
-    { label: 'Excavator Mini SY75 (Bucket)', value: 'Excavator Mini SY75 - Bucket' },
-    { label: 'Excavator Mini SY75 (Breaker)', value: 'Excavator Mini SY75 - Breaker' },
-    { label: 'Excavator Mini SY75 (Bucket & Breaker)', value: 'Excavator Mini SY75 - Bucket & Breaker' },
+  const alatOptions = [
+    { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
+    { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
+    { label: 'Excavator 20 Ton - Bucket & Breaker', value: 'Excavator 20 Ton - Bucket & Breaker' },
+    { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
+    { label: 'Excavator Mini SY55 - Bucket & Breaker', value: 'Excavator Mini SY55 - Bucket & Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY75 - Bucket' },
+    { label: 'Excavator Mini SY75 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket & Breaker', value: 'Excavator Mini SY75 - Bucket & Breaker' },
     { label: 'Vibro Roller', value: 'Vibro Roller' },
     { label: 'Bulldozer', value: 'Bulldozer' },
     { label: 'Motor Grader', value: 'Motor Grader' }
