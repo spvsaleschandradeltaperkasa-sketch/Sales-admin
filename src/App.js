@@ -182,7 +182,7 @@ export default function DeltaPerkasaApp() {
   ];
 
   const salesOptions = [{ label: 'ANS', value: 'ANS' }, { label: 'UCI', value: 'UCI' }, { label: 'CDP', value: 'CDP' }, { label: 'FAN', value: 'FAN' }, { label: 'CDF', value: 'CDF' }];
-    const fleetDatabase = [
+  const fleetDatabase = [
     { code: 'EXC.05', class: 'Exca 20 Ton' },
     { code: 'EXC.01', class: 'Exca 20 Ton' },
     { code: 'EXC.03', class: 'Exca 20 Ton' },
