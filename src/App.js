@@ -237,10 +237,14 @@ export default function SalesOrderDashboard() {
     
     const newOrder = {
       id: newOrderNo,
-      ...formData,
+      customer: formData.customer,
+      namaProyek: formData.namaProyek,
       lokasiAwal: 'Pool Delta Perkasa Makassar',
       lokasiTujuan: formData.lokasiPengantaran || formData.lokasi,
       picPenerima: formData.picPenerima || 'Belum diisi PIC',
+      sales: formData.sales,
+      jenisAlat: formData.jenisAlat,       // <-- TERSIMPAN: jenis alat dari form
+      jenisSewa: formData.jenisSewa,
       rencanaDurasi: durasiString,
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Menunggu alokasi lapangan',
@@ -254,7 +258,7 @@ export default function SalesOrderDashboard() {
       timestampTiba: '-',
       koordinatMuat: '-',
       koordinatTiba: '-',
-      jumlahUnit: Number(formData.jumlahUnit) || 1,
+      jumlahUnit: Number(formData.jumlahUnit) || 1, // <-- TERSIMPAN: jumlah unit
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -405,14 +409,14 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* (HM: ${order.hmAwal}) | Operator: *${order.namaOperator}* | Status: *${order.status}*. Terima kasih!`;
+    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Request Alat: *${order.jenisAlat}* (Jml: ${order.jumlahUnit}) | Unit: *${order.kodeUnit}* (HM: ${order.hmAwal}) | Operator: *${order.namaOperator}* | Status: *${order.status}*. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
   const sendLogisticsWhatsApp = (order) => {
-    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nDetail Mobilisasi Order *${order.id}*:\n- *Customer:* ${order.customer} (${order.namaProyek})\n- *Unit & HM/BBM:* ${order.kodeUnit} | ${order.hmAwal}\n- *Tronton:* ${order.trontonUnit}\n- *Asal:* ${order.lokasiAwal}\n- *Tujuan:* ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Catatan:* _${order.catatanLogistik}_\n\nMohon koordinasikan. Terima kasih!`;
+    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nDetail Mobilisasi Order *${order.id}*:\n- *Customer:* ${order.customer} (${order.namaProyek})\n- *Request Alat:* ${order.jenisAlat} (${order.jumlahUnit} Unit)\n- *Unit & HM/BBM:* ${order.kodeUnit} | ${order.hmAwal}\n- *Tronton:* ${order.trontonUnit}\n- *Asal:* ${order.lokasiAwal}\n- *Tujuan:* ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Catatan:* _${order.catatanLogistik}_\n\nMohon koordinasikan. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -420,7 +424,7 @@ export default function SalesOrderDashboard() {
 
   const sendLogisticsUpdateToSales = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `📢 *INFO LOGISTIK LENGKAP* 📢\nHalo ${order.sales}, update pengiriman order *${order.id}* (${order.customer}):\n- *Unit:* ${order.kodeUnit} (HM/BBM: ${order.hmAwal})\n- *Tronton:* ${order.trontonUnit}\n- *Rute:* ${order.lokasiAwal} ➡️ ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Status:* *${order.statusLogistik}*\n- *Foto Muat:* ${order.timestampMuat} (${order.koordinatMuat})\n- *Foto Tiba:* ${order.timestampTiba} (${order.koordinatTiba})\n\nTerima kasih!`;
+    const message = `📢 *INFO LOGISTIK LENGKAP* 📢\nHalo ${order.sales}, update pengiriman order *${order.id}* (${order.customer}):\n- *Request Alat:* ${order.jenisAlat} (${order.jumlahUnit} Unit)\n- *Unit:* ${order.kodeUnit} (HM/BBM: ${order.hmAwal})\n- *Tronton:* ${order.trontonUnit}\n- *Rute:* ${order.lokasiAwal} ➡️ ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Status:* *${order.statusLogistik}*\n- *Foto Muat:* ${order.timestampMuat} (${order.koordinatMuat})\n- *Foto Tiba:* ${order.timestampTiba} (${order.koordinatTiba})\n\nTerima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -513,7 +517,7 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* FORM SALES ORDER DENGAN LOKASI PENGANTARAN & PIC PENERIMA */}
+        {/* FORM SALES ORDER */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <h2 className="text-xl font-black text-white mb-1">Formulir Pemesanan Alat Berat (Sales Order)</h2>
           <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek, lokasi pengantaran, dan skema sewa dengan lengkap</p>
@@ -541,7 +545,6 @@ export default function SalesOrderDashboard() {
               </div>
             </div>
 
-            {/* TAMBAHAN BARU: LOKASI PENGANTARAN & PIC PENERIMA DI LOKASI */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-950/60 border border-purple-900/40 rounded-2xl">
               <div>
                 <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider mb-1">
@@ -676,10 +679,22 @@ export default function SalesOrderDashboard() {
                   filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
                       <td className="py-4 px-4 font-mono font-bold text-blue-400">{order.id}</td>
-                      <td className="py-4 px-4">
-                        <div className="font-bold text-white">{order.customer}</div>
-                        <div className="text-xs text-slate-400">{order.namaProyek} ({order.lokasiTujuan})</div>
-                        <div className="text-[11px] text-amber-300 mt-1">👤 PIC: {order.picPenerima}</div>
+                      
+                      {/* CUSTOMER, PROYEK, & REQUEST ALAT DARI SALES */}
+                      <td className="py-4 px-4 space-y-1">
+                        <div className="font-bold text-white text-base">{order.customer}</div>
+                        <div className="text-xs text-slate-300">{order.namaProyek}</div>
+                        <div className="text-[11px] font-mono text-blue-300 underline truncate max-w-xs">{order.lokasiTujuan}</div>
+                        
+                        {/* PENTING: KOTAK REQUEST ALAT YANG DITAMBAHKAN */}
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/50 rounded-xl shadow-inner">
+                          <span className="text-sm">🚜</span>
+                          <span className="text-xs font-black text-amber-300">
+                            Req: {order.jenisAlat || 'Belum dipilih'} <span className="text-teal-300 font-mono">({order.jumlahUnit || 1} Unit)</span>
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-amber-300 mt-2">👤 PIC: {order.picPenerima}</div>
                         <div className="mt-1"><span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded">Sales: {order.sales}</span></div>
                       </td>
                       
