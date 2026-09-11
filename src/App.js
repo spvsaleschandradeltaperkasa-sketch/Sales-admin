@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 
 export default function SalesOrderDashboard() {
-  const [activeTab, setActiveTab] = useState('timesheet'); // 'order' atau 'timesheet'
+  const [activeTab, setActiveTab] = useState('order'); // 'order' atau 'timesheet'
 
-  // State Form Sales Order
   const [formData, setFormData] = useState({
     customer: '',
     namaProyek: '',
@@ -18,12 +17,12 @@ export default function SalesOrderDashboard() {
     jumlahUnit: 1
   });
 
-  // State Form Admin Timesheet (Sesuai Spreadsheet)
+  // State Khusus Form Timesheet yang diinput oleh Kepala Operator / Admin Timesheet
   const [timesheetForm, setTimesheetForm] = useState({
     kodeGajiOperator: '1907',
     kodeTagih: '2173',
     jobId: '0320-0526-ANS-S1',
-    tanggal: '2026-09-11',
+    tanggal: '11-Sep-26',
     hari: 'Jumat',
     operator: 'BUSTAM',
     attach: 'Bucket',
@@ -48,6 +47,7 @@ export default function SalesOrderDashboard() {
   const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
   const [fleetSearchQuery, setFleetSearchQuery] = useState('');
 
+  // Refs untuk kamera tersembunyi
   const fileInputRef = useRef(null);
   const activeCaptureRef = useRef({ orderId: null, jenis: null });
 
@@ -70,6 +70,7 @@ export default function SalesOrderDashboard() {
   const operatorDatabase = [
     'BUSTAM',
     'ABDUL RAHIM SAPUTRA',
+    'Baharuddin',
     'Saharuddin',
     'Rustam',
     'Amir',
@@ -82,14 +83,137 @@ export default function SalesOrderDashboard() {
   ];
 
   const fleetDatabase = [
-    { code: 'EXC.92', class: 'Exca 20 Ton', model: 'SY215H' },
-    { code: 'EXC.83', class: 'Exca 20 Ton', model: 'SY215ACE' },
-    { code: 'EXC.80', class: 'Exca 20 Ton', model: 'SY215ACE' },
-    { code: 'EXC.05', class: 'Exca 20 Ton', model: 'SY215' },
-    { code: 'EXC.01', class: 'Exca 20 Ton', model: 'SY215' },
-    { code: 'MG-1', class: 'Motor Grader', model: 'Grader' },
-    { code: 'D.02', class: 'Medium Dozer', model: 'Dozer' },
-    { code: 'VBR.01', class: 'Vibro 10 Ton', model: 'Vibro' }
+    { code: 'EXC.05', class: 'Exca 20 Ton' },
+    { code: 'EXC.01', class: 'Exca 20 Ton' },
+    { code: 'EXC.03', class: 'Exca 20 Ton' },
+    { code: 'EXC.04', class: 'Exca 20 Ton' },
+    { code: 'EXC.06', class: 'Exca 20 Ton' },
+    { code: 'EXC.07', class: 'Exca 20 Ton' },
+    { code: 'EXC.08', class: 'Exca 20 Ton' },
+    { code: 'EXC.09', class: 'Exca 20 Ton' },
+    { code: 'EXC.11', class: 'Exca 20 Ton' },
+    { code: 'EXC.12', class: 'Exca 20 Ton' },
+    { code: 'EXC.14', class: 'Exca 20 Ton' },
+    { code: 'EXC.15', class: 'Exca 20 Ton' },
+    { code: 'EXC.16', class: 'Exca 20 Ton' },
+    { code: 'EXC.17', class: 'Exca 20 Ton' },
+    { code: 'EXC.18', class: 'Exca 20 Ton' },
+    { code: 'EXC.19', class: 'Exca 20 Ton' },
+    { code: 'EXC.20', class: 'Exca Mini' },
+    { code: 'EXC.21', class: 'Exca Mini' },
+    { code: 'EXC.24', class: 'Exca Mini' },
+    { code: 'EXC.25', class: 'Exca Mini' },
+    { code: 'EXC.26', class: 'Exca Mini' },
+    { code: 'EXC.27', class: 'Exca Mini' },
+    { code: 'EXC.28', class: 'Exca Mini' },
+    { code: 'EXC.29', class: 'Exca Mini' },
+    { code: 'EXC.30', class: 'Exca Mini' },
+    { code: 'EXC.31', class: 'Exca Mini' },
+    { code: 'EXC.32', class: 'Exca Mini' },
+    { code: 'EXC.33', class: 'Exca Mini' },
+    { code: 'EXC.34', class: 'Exca Mini' },
+    { code: 'EXC.35', class: 'Exca Mini' },
+    { code: 'EXC.36', class: 'Exca Mini' },
+    { code: 'EXC.37', class: 'Exca Mini' },
+    { code: 'EXC.38', class: 'Exca Mini' },
+    { code: 'EXC.39', class: 'Exca Mini' },
+    { code: 'EXC.40', class: 'Exca 20 Ton' },
+    { code: 'EXC.41', class: 'Exca 20 Ton' },
+    { code: 'EXC.42', class: 'Exca 20 Ton' },
+    { code: 'EXC.43', class: 'Exca 20 Ton' },
+    { code: 'EXC.44', class: 'Exca 20 Ton' },
+    { code: 'EXC.45', class: 'Exca 20 Ton' },
+    { code: 'EXC.46', class: 'Exca 20 Ton' },
+    { code: 'EXC.47', class: 'Exca 20 Ton' },
+    { code: 'EXC.48', class: 'Exca 20 Ton' },
+    { code: 'EXC.49', class: 'Exca 20 Ton' },
+    { code: 'EXC.50', class: 'Exca 20 Ton' },
+    { code: 'EXC.51', class: 'Exca 20 Ton' },
+    { code: 'EXC.52', class: 'Exca 20 Ton' },
+    { code: 'EXC.53', class: 'Exca 20 Ton' },
+    { code: 'EXC.54', class: 'Exca 20 Ton' },
+    { code: 'EXC.55', class: 'Exca 20 Ton' },
+    { code: 'EXC.56', class: 'Exca 20 Ton' },
+    { code: 'EXC.57', class: 'Exca 20 Ton' },
+    { code: 'EXC.58', class: 'Exca 20 Ton' },
+    { code: 'EXC.59', class: 'Exca 20 Ton' },
+    { code: 'EXC.60', class: 'Exca Mini' },
+    { code: 'EXC.61', class: 'Exca Mini' },
+    { code: 'EXC.62', class: 'Exca Mini' },
+    { code: 'EXC.63', class: 'Exca Mini' },
+    { code: 'EXC.64', class: 'Exca Mini' },
+    { code: 'EXC.65', class: 'Exca Mini' },
+    { code: 'EXC.66', class: 'Exca Mini' },
+    { code: 'EXC.67', class: 'Exca Mini' },
+    { code: 'EXC.68', class: 'Exca Mini' },
+    { code: 'EXC.69', class: 'Exca Mini' },
+    { code: 'EXC.70', class: 'Exca Mini' },
+    { code: 'EXC.71', class: 'Exca Mini' },
+    { code: 'EXC.72', class: 'Exca Mini' },
+    { code: 'EXC.73', class: 'Exca Mini' },
+    { code: 'EXC.74', class: 'Exca Mini' },
+    { code: 'EXC.75', class: 'Exca Mini' },
+    { code: 'EXC.76', class: 'Exca Mini' },
+    { code: 'EXC.77', class: 'Exca Mini' },
+    { code: 'EXC.80', class: 'Exca 20 Ton' },
+    { code: 'EXC.81', class: 'Exca 20 Ton' },
+    { code: 'EXC.82', class: 'Exca 20 Ton' },
+    { code: 'EXC.83', class: 'Exca 20 Ton' },
+    { code: 'EXC.84', class: 'Exca 20 Ton' },
+    { code: 'EXC.85', class: 'Exca 20 Ton' },
+    { code: 'EXC.86', class: 'Exca 20 Ton' },
+    { code: 'EXC.87', class: 'Exca 20 Ton' },
+    { code: 'EXC.88', class: 'Exca 20 Ton' },
+    { code: 'EXC.89', class: 'Exca 20 Ton' },
+    { code: 'EXC.90', class: 'Exca 20 Ton' },
+    { code: 'EXC.91', class: 'Exca 20 Ton' },
+    { code: 'EXC.92', class: 'Exca 20 Ton' },
+    { code: 'EXC.93', class: 'Exca 20 Ton' },
+    { code: 'EXC.94', class: 'Exca 20 Ton' },
+    { code: 'EXC.95', class: 'Exca 20 Ton' },
+    { code: 'EXC.96', class: 'Exca 20 Ton' },
+    { code: 'EXC.97', class: 'Exca 20 Ton' },
+    { code: 'EXC.98', class: 'Exca 20 Ton' },
+    { code: 'EXC.201', class: 'Exca 20 Ton' },
+    { code: 'EXC.202', class: 'Exca 20 Ton' },
+    { code: 'EXC.203', class: 'Exca 20 Ton' },
+    { code: 'EXC.204', class: 'Exca 20 Ton' },
+    { code: 'EXC.205', class: 'Exca 20 Ton' },
+    { code: 'EXC.206', class: 'Exca 20 Ton' },
+    { code: 'EXC.207', class: 'Exca 20 Ton' },
+    { code: 'EXC.208', class: 'Exca 20 Ton' },
+    { code: 'EXC.209', class: 'Exca 20 Ton' },
+    { code: 'EXC.210', class: 'Exca 20 Ton' },
+    { code: 'EXC.211', class: 'Exca 20 Ton' },
+    { code: 'EXC.212', class: 'Exca 20 Ton' },
+    { code: 'EXC.213', class: 'Exca 20 Ton' },
+    { code: 'EXC.214', class: 'Exca 20 Ton' },
+    { code: 'EXC.215', class: 'Exca 20 Ton' },
+    { code: 'EXC.301', class: 'Exca 30 Ton' },
+    { code: 'EXC.302', class: 'Exca 30 Ton' },
+    { code: 'EXC.303', class: 'Exca 30 Ton' },
+    { code: 'EXC.304', class: 'Exca 30 Ton' },
+    { code: 'EXC.305', class: 'Exca 30 Ton' },
+    { code: 'EXC.306', class: 'Exca 30 Ton' },
+    { code: 'EXC.307', class: 'Exca 30 Ton' },
+    { code: 'EXC.308', class: 'Exca 30 Ton' },
+    { code: 'EXC.309', class: 'Exca 30 Ton' },
+    { code: 'MG-1', class: 'Motor Grader' },
+    { code: 'MG-2', class: 'Motor Grader' },
+    { code: 'MG-3', class: 'Motor Grader' },
+    { code: 'MG-4', class: 'Motor Grader' },
+    { code: 'MG-5', class: 'Motor Grader' },
+    { code: 'MC.01', class: 'Mobile Crane' },
+    { code: 'D.02', class: 'Medium Dozer' },
+    { code: 'D.03', class: 'Medium Dozer' },
+    { code: 'VBR.01', class: 'Vibro 10 Ton' },
+    { code: 'VBR.04', class: 'Vibro 10 Ton' },
+    { code: 'VBR.05', class: 'Vibro 10 Ton' },
+    { code: 'VBR.06', class: 'Vibro 10 Ton' },
+    { code: 'VBR.07', class: 'Vibro 10 Ton' },
+    { code: 'VBR.08', class: 'Vibro 10 Ton' },
+    { code: 'VBR.09', class: 'Vibro 10 Ton' },
+    { code: 'VBR.TW.02', class: 'Vibro 10 Ton' }
   ];
 
   const [orderList, setOrderList] = useState([
@@ -123,7 +247,7 @@ export default function SalesOrderDashboard() {
     }
   ]);
 
-  // Data Rekap Timesheet (Sesuai Spreadsheet Gambar Anda)
+  // Data Rekap Timesheet Sesuai Spreadsheet Gambar Anda
   const [timesheetList, setTimesheetList] = useState([
     {
       id: 'TS-01',
@@ -212,18 +336,31 @@ export default function SalesOrderDashboard() {
     setOrderList([newOrder, ...orderList]);
     setNotification({
       show: true,
-      message: `Sales Order #${newOrderNo} berhasil diterbitkan & disimpan!`
+      message: `Sales Order #${newOrderNo} berhasil diterbitkan & dikirim ke rekap!`
+    });
+
+    setFormData({
+      customer: '',
+      namaProyek: '',
+      lokasi: '',
+      lokasiPengantaran: '',
+      picPenerima: '',
+      sales: 'ANS',
+      jenisAlat: 'Excavator 20 Ton - Bucket',
+      jenisSewa: 'S1',
+      tipeDurasi: 'Jam',
+      jumlahDurasi: 8,
+      jumlahUnit: 1
     });
 
     setTimeout(() => setNotification({ show: false, message: '' }), 4000);
   };
 
-  // Submit Form Timesheet Harian
+  // Submit Form Timesheet oleh Kepala Operator / Admin Timesheet
   const handleTimesheetSubmit = (e) => {
     e.preventDefault();
     const newTsId = 'TS-' + Math.floor(10 + Math.random() * 90);
     
-    // Hitung otomatis selisih HM jika angka
     const start = parseFloat(timesheetForm.hmStart.replace(',', '.')) || 0;
     const end = parseFloat(timesheetForm.hmEnd.replace(',', '.')) || 0;
     const totalHMVal = (end >= start) ? (end - start).toFixed(1).replace('.', ',') : '0,0';
@@ -241,7 +378,7 @@ export default function SalesOrderDashboard() {
     setTimesheetList([newTimesheetRow, ...timesheetList]);
     setNotification({
       show: true,
-      message: `Data Timesheet Operator ${timesheetForm.operator} berhasil ditambahkan ke rekap spreadsheet!`
+      message: `Job ID ${timesheetForm.jobId} untuk Operator ${timesheetForm.operator} berhasil dicatat!`
     });
 
     setTimeout(() => setNotification({ show: false, message: '' }), 4000);
@@ -432,18 +569,8 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* NAVIGATION TABS (SALES ORDER VS ADMIN TIMESHEET) */}
+        {/* NAVIGATION TABS (PILIHAN MENU ATAS) */}
         <div className="flex border-b border-slate-800">
-          <button
-            onClick={() => setActiveTab('timesheet')}
-            className={`px-6 py-3 font-bold text-sm tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab === 'timesheet' 
-                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10 rounded-t-xl' 
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <span>📊</span> Form & Rekap Admin Timesheet (Spreadsheet)
-          </button>
           <button
             onClick={() => setActiveTab('order')}
             className={`px-6 py-3 font-bold text-sm tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
@@ -452,7 +579,17 @@ export default function SalesOrderDashboard() {
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            <span>📝</span> Formulir Sales Order & Logistik
+            <span>📝</span> Formulir Sales Order & Kontrol Lapangan
+          </button>
+          <button
+            onClick={() => setActiveTab('timesheet')}
+            className={`px-6 py-3 font-bold text-sm tracking-wider border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'timesheet' 
+                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10 rounded-t-xl' 
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <span>📊</span> Form & Rekap Admin Timesheet (Job ID)
           </button>
         </div>
 
@@ -463,173 +600,7 @@ export default function SalesOrderDashboard() {
           </div>
         )}
 
-        {/* TAB 1: ADMIN TIMESHEET FORM & SPREADSHEET */}
-        {activeTab === 'timesheet' && (
-          <div className="space-y-8">
-            {/* FORM INPUT TIMESHEET HARIAN */}
-            <div className="bg-[#0b0e17] border border-emerald-500/30 rounded-3xl p-6 md:p-8 shadow-2xl relative">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 rounded-t-3xl"></div>
-              
-              <div className="mb-6">
-                <h2 className="text-lg font-black text-white">Form Input Admin Timesheet Harian</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Catat jam kerja, Hour Meter (HM), operator, dan pencukupan alat sesuai format spreadsheet</p>
-              </div>
-
-              <form onSubmit={handleTimesheetSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Gaji Operator</label>
-                    <input type="text" name="kodeGajiOperator" value={timesheetForm.kodeGajiOperator} onChange={handleTimesheetChange} required className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-mono text-white outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Tagih</label>
-                    <input type="text" name="kodeTagih" value={timesheetForm.kodeTagih} onChange={handleTimesheetChange} required className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-mono text-white outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Job ID</label>
-                    <input type="text" name="jobId" value={timesheetForm.jobId} onChange={handleTimesheetChange} required className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-mono text-white outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Job Via</label>
-                    <select name="jobVia" value={timesheetForm.jobVia} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-amber-300 outline-none">
-                      {salesOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal & Hari</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="text" name="tanggal" value={timesheetForm.tanggal} onChange={handleTimesheetChange} placeholder="11-Sep-26" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                      <input type="text" name="hari" value={timesheetForm.hari} onChange={handleTimesheetChange} placeholder="Jumat" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Operator</label>
-                    <select name="operator" value={timesheetForm.operator} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-emerald-300 outline-none">
-                      {operatorDatabase.map(op => <option key={op} value={op}>{op}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Code & Model</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <select name="unitCode" value={timesheetForm.unitCode} onChange={handleTimesheetChange} className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-amber-300 outline-none">
-                        {fleetDatabase.map(f => <option key={f.code} value={f.code}>{f.code}</option>)}
-                      </select>
-                      <input type="text" name="model" value={timesheetForm.model} onChange={handleTimesheetChange} placeholder="SY215H" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Attachment (Attach.)</label>
-                    <input type="text" name="attach" value={timesheetForm.attach} onChange={handleTimesheetChange} placeholder="Bucket / Breaker" className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[#121824]/50 border border-slate-800 rounded-2xl">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Penyewa & Alamat Proyek</label>
-                    <input type="text" name="namaPenyewa" value={timesheetForm.namaPenyewa} onChange={handleTimesheetChange} placeholder="PT Mahligai Artha Sejahtera" className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white outline-none mb-2" />
-                    <input type="text" name="alamat" value={timesheetForm.alamat} onChange={handleTimesheetChange} placeholder="Buleleng, Bungku Pesisir, Morowali" className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[9px] font-bold text-teal-400 uppercase mb-1">HM Start</label>
-                      <input type="text" name="hmStart" value={timesheetForm.hmStart} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-bold text-teal-400 uppercase mb-1">HM End</label>
-                      <input type="text" name="hmEnd" value={timesheetForm.hmEnd} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-bold text-amber-400 uppercase mb-1">Pencukupan</label>
-                      <input type="text" name="pencukupan" value={timesheetForm.pencukupan} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-amber-800 rounded-xl text-xs font-mono font-bold text-amber-300 outline-none" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Keterangan / Catatan</label>
-                    <input type="text" name="keterangan" value={timesheetForm.keterangan} onChange={handleTimesheetChange} placeholder="Cukup 200 Jam / Kelebihan periode..." className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jenis Jam (Jam Dunia / HM)</label>
-                    <input type="text" name="jamDuniaHm" value={timesheetForm.jamDuniaHm} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer">
-                  + Simpan Entri Timesheet ke Spreadsheet &rarr;
-                </button>
-              </form>
-            </div>
-
-            {/* TABEL SPREADSHEET REKAP TIMESHEET (MENYERupai GAMBAR) */}
-            <div className="bg-[#0b0e17] border border-slate-800 rounded-3xl p-6 shadow-2xl overflow-hidden">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base font-black text-white">Spreadsheet Rekap Admin Timesheet</h3>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800">Total Entri: {timesheetList.length} Baris</span>
-              </div>
-
-              <div className="overflow-x-auto max-h-[500px]">
-                <table className="w-full text-left border-collapse text-xs whitespace-nowrap font-mono">
-                  <thead>
-                    <tr className="bg-[#121824] text-slate-300 uppercase text-[10px] border-b border-slate-700 sticky top-0">
-                      <th className="py-3 px-3 bg-emerald-950 text-emerald-300">Kode Gaji</th>
-                      <th className="py-3 px-3 bg-emerald-950 text-emerald-300">Kode Tagih</th>
-                      <th className="py-3 px-3">Job ID</th>
-                      <th className="py-3 px-3">Tanggal</th>
-                      <th className="py-3 px-3">Hari</th>
-                      <th className="py-3 px-3">Operator</th>
-                      <th className="py-3 px-3">Attach.</th>
-                      <th className="py-3 px-3">Unit Code</th>
-                      <th className="py-3 px-3">Model</th>
-                      <th className="py-3 px-3">Nama Penyewa</th>
-                      <th className="py-3 px-3">Alamat</th>
-                      <th className="py-3 px-3">Job Via</th>
-                      <th className="py-3 px-3 bg-teal-950 text-teal-300">HM Start</th>
-                      <th className="py-3 px-3 bg-teal-950 text-teal-300">HM End</th>
-                      <th className="py-3 px-3 bg-teal-950 text-teal-300">Total HM</th>
-                      <th className="py-3 px-3 bg-cyan-950 text-cyan-300">Unit Working</th>
-                      <th className="py-3 px-3 bg-cyan-950 text-cyan-300">Op. Working</th>
-                      <th className="py-3 px-3 bg-amber-950 text-amber-300">Pencukupan</th>
-                      <th className="py-3 px-3">Keterangan</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {timesheetList.map((ts, idx) => (
-                      <tr key={idx} className="hover:bg-slate-800/40">
-                        <td className="py-2.5 px-3 bg-emerald-950/40 text-emerald-300 font-bold">{ts.kodeGajiOperator}</td>
-                        <td className="py-2.5 px-3 bg-emerald-950/40 text-amber-300 font-bold">{ts.kodeTagih}</td>
-                        <td className="py-2.5 px-3 text-blue-400">{ts.jobId}</td>
-                        <td className="py-2.5 px-3">{ts.tanggal}</td>
-                        <td className="py-2.5 px-3">{ts.hari}</td>
-                        <td className="py-2.5 px-3 font-bold text-white">{ts.operator}</td>
-                        <td className="py-2.5 px-3 text-slate-300">{ts.attach}</td>
-                        <td className="py-2.5 px-3 font-bold text-amber-400">{ts.unitCode}</td>
-                        <td className="py-2.5 px-3 text-slate-300">{ts.model}</td>
-                        <td className="py-2.5 px-3 font-bold text-slate-200">{ts.namaPenyewa}</td>
-                        <td className="py-2.5 px-3 text-slate-400 text-[11px]">{ts.alamat}</td>
-                        <td className="py-2.5 px-3 font-bold text-blue-300">{ts.jobVia}</td>
-                        <td className="py-2.5 px-3 bg-teal-950/40 text-teal-300">{ts.hmStart}</td>
-                        <td className="py-2.5 px-3 bg-teal-950/40 text-teal-300">{ts.hmEnd}</td>
-                        <td className="py-2.5 px-3 bg-teal-950/40 font-bold text-white">{ts.totalHm}</td>
-                        <td className="py-2.5 px-3 bg-cyan-950/40 text-cyan-300 font-bold">{ts.unitWorkingHour}</td>
-                        <td className="py-2.5 px-3 bg-cyan-950/40 text-cyan-300 font-bold">{ts.operatorWorkingHour}</td>
-                        <td className="py-2.5 px-3 bg-amber-950/40 text-amber-300">{ts.pencukupan}</td>
-                        <td className="py-2.5 px-3 text-slate-300">{ts.keterangan}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: SALES ORDER & KONTROL LAPANGAN */}
+        {/* TAB 1: SALES ORDER & KONTROL LAPANGAN (TETAP UTUH SEPERTI SEMULA) */}
         {activeTab === 'order' && (
           <div className="space-y-8">
             <div className="bg-[#0b0e17] border border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-2xl relative">
@@ -866,7 +837,172 @@ export default function SalesOrderDashboard() {
           </div>
         )}
 
-        {/* DATABASE ARMADA */}
+        {/* TAB 2: FORM & REKAP ADMIN TIMESHEET (INPUT KEPALA OPERATOR & JOB ID) */}
+        {activeTab === 'timesheet' && (
+          <div className="space-y-8">
+            <div className="bg-[#0b0e17] border border-emerald-500/30 rounded-3xl p-6 md:p-8 shadow-2xl relative">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 rounded-t-3xl"></div>
+              
+              <div className="mb-6">
+                <h2 className="text-lg font-black text-white">Form Input Timesheet & Job ID oleh Kepala Operator / Admin</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Catat jam kerja, Hour Meter (HM), Job ID, operator, dan unit sesuai format spreadsheet operasional</p>
+              </div>
+
+              <form onSubmit={handleTimesheetSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Gaji Operator</label>
+                    <input type="text" name="kodeGajiOperator" value={timesheetForm.kodeGajiOperator} onChange={handleTimesheetChange} required className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-mono text-white outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Tagih</label>
+                    <input type="text" name="kodeTagih" value={timesheetForm.kodeTagih} onChange={handleTimesheetChange} required className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-mono text-white outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Job ID (Pilihan Kepala Operator)</label>
+                    <input type="text" name="jobId" value={timesheetForm.jobId} onChange={handleTimesheetChange} placeholder="0320-0526-ANS-S1" required className="w-full px-3 py-2 bg-[#121824] border border-emerald-600 rounded-xl text-xs font-mono font-bold text-emerald-300 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Job Via (Sales)</label>
+                    <select name="jobVia" value={timesheetForm.jobVia} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-amber-300 outline-none">
+                      {salesOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal & Hari</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="text" name="tanggal" value={timesheetForm.tanggal} onChange={handleTimesheetChange} placeholder="11-Sep-26" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                      <input type="text" name="hari" value={timesheetForm.hari} onChange={handleTimesheetChange} placeholder="Jumat" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Operator</label>
+                    <select name="operator" value={timesheetForm.operator} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-emerald-300 outline-none">
+                      {operatorDatabase.map(op => <option key={op} value={op}>{op}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Code & Model</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <select name="unitCode" value={timesheetForm.unitCode} onChange={handleTimesheetChange} className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs font-bold text-amber-300 outline-none">
+                        {fleetDatabase.map(f => <option key={f.code} value={f.code}>{f.code}</option>)}
+                      </select>
+                      <input type="text" name="model" value={timesheetForm.model} onChange={handleTimesheetChange} placeholder="SY215H" className="px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Attachment</label>
+                    <input type="text" name="attach" value={timesheetForm.attach} onChange={handleTimesheetChange} placeholder="Bucket / Breaker" className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-[#121824]/50 border border-slate-800 rounded-2xl">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Penyewa & Alamat Proyek</label>
+                    <input type="text" name="namaPenyewa" value={timesheetForm.namaPenyewa} onChange={handleTimesheetChange} placeholder="PT Mahligai Artha Sejahtera" className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white outline-none mb-2" />
+                    <input type="text" name="alamat" value={timesheetForm.alamat} onChange={handleTimesheetChange} placeholder="Buleleng, Bungku Pesisir, Morowali" className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[9px] font-bold text-teal-400 uppercase mb-1">HM Start</label>
+                      <input type="text" name="hmStart" value={timesheetForm.hmStart} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold text-teal-400 uppercase mb-1">HM End</label>
+                      <input type="text" name="hmEnd" value={timesheetForm.hmEnd} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold text-amber-400 uppercase mb-1">Pencukupan</label>
+                      <input type="text" name="pencukupan" value={timesheetForm.pencukupan} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#0b0e17] border border-amber-800 rounded-xl text-xs font-mono font-bold text-amber-300 outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Keterangan / Catatan</label>
+                    <input type="text" name="keterangan" value={timesheetForm.keterangan} onChange={handleTimesheetChange} placeholder="Cukup 200 Jam / Kelebihan periode..." className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jam Dunia / HM</label>
+                    <input type="text" name="jamDuniaHm" value={timesheetForm.jamDuniaHm} onChange={handleTimesheetChange} className="w-full px-3 py-2 bg-[#121824] border border-slate-700 rounded-xl text-xs text-white outline-none" />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer">
+                  + Simpan Entri Timesheet & Job ID ke Spreadsheet &rarr;
+                </button>
+              </form>
+            </div>
+
+            {/* TABEL SPREADSHEET REKAP TIMESHEET */}
+            <div className="bg-[#0b0e17] border border-slate-800 rounded-3xl p-6 shadow-2xl overflow-hidden">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-black text-white">Spreadsheet Rekap Admin Timesheet (Job ID Terdaftar)</h3>
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800">Total Baris: {timesheetList.length}</span>
+              </div>
+
+              <div className="overflow-x-auto max-h-[500px]">
+                <table className="w-full text-left border-collapse text-xs whitespace-nowrap font-mono">
+                  <thead>
+                    <tr className="bg-[#121824] text-slate-300 uppercase text-[10px] border-b border-slate-700 sticky top-0">
+                      <th className="py-3 px-3 bg-emerald-950 text-emerald-300">Kode Gaji</th>
+                      <th className="py-3 px-3 bg-emerald-950 text-emerald-300">Kode Tagih</th>
+                      <th className="py-3 px-3 bg-emerald-900/50 text-emerald-300 font-bold">Job ID</th>
+                      <th className="py-3 px-3">Tanggal</th>
+                      <th className="py-3 px-3">Hari</th>
+                      <th className="py-3 px-3">Operator</th>
+                      <th className="py-3 px-3">Attach.</th>
+                      <th className="py-3 px-3">Unit Code</th>
+                      <th className="py-3 px-3">Model</th>
+                      <th className="py-3 px-3">Nama Penyewa</th>
+                      <th className="py-3 px-3">Alamat</th>
+                      <th className="py-3 px-3">Job Via</th>
+                      <th className="py-3 px-3 bg-teal-950 text-teal-300">HM Start</th>
+                      <th className="py-3 px-3 bg-teal-950 text-teal-300">HM End</th>
+                      <th className="py-3 px-3 bg-teal-950 text-teal-300">Total HM</th>
+                      <th className="py-3 px-3 bg-cyan-950 text-cyan-300">Unit Working</th>
+                      <th className="py-3 px-3 bg-cyan-950 text-cyan-300">Op. Working</th>
+                      <th className="py-3 px-3 bg-amber-950 text-amber-300">Pencukupan</th>
+                      <th className="py-3 px-3">Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {timesheetList.map((ts, idx) => (
+                      <tr key={idx} className="hover:bg-slate-800/40">
+                        <td className="py-2.5 px-3 bg-emerald-950/40 text-emerald-300 font-bold">{ts.kodeGajiOperator}</td>
+                        <td className="py-2.5 px-3 bg-emerald-950/40 text-amber-300 font-bold">{ts.kodeTagih}</td>
+                        <td className="py-2.5 px-3 bg-emerald-900/20 text-emerald-400 font-black">{ts.jobId}</td>
+                        <td className="py-2.5 px-3">{ts.tanggal}</td>
+                        <td className="py-2.5 px-3">{ts.hari}</td>
+                        <td className="py-2.5 px-3 font-bold text-white">{ts.operator}</td>
+                        <td className="py-2.5 px-3 text-slate-300">{ts.attach}</td>
+                        <td className="py-2.5 px-3 font-bold text-amber-400">{ts.unitCode}</td>
+                        <td className="py-2.5 px-3 text-slate-300">{ts.model}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-200">{ts.namaPenyewa}</td>
+                        <td className="py-2.5 px-3 text-slate-400 text-[11px]">{ts.alamat}</td>
+                        <td className="py-2.5 px-3 font-bold text-blue-300">{ts.jobVia}</td>
+                        <td className="py-2.5 px-3 bg-teal-950/40 text-teal-300">{ts.hmStart}</td>
+                        <td className="py-2.5 px-3 bg-teal-950/40 text-teal-300">{ts.hmEnd}</td>
+                        <td className="py-2.5 px-3 bg-teal-950/40 font-bold text-white">{ts.totalHm}</td>
+                        <td className="py-2.5 px-3 bg-cyan-950/40 text-cyan-300 font-bold">{ts.unitWorkingHour}</td>
+                        <td className="py-2.5 px-3 bg-cyan-950/40 text-cyan-300 font-bold">{ts.operatorWorkingHour}</td>
+                        <td className="py-2.5 px-3 bg-amber-950/40 text-amber-300">{ts.pencukupan}</td>
+                        <td className="py-2.5 px-3 text-slate-300">{ts.keterangan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DATABASE ARMADA (TETAP UTUH) */}
         <div className="bg-[#0b0e17] border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
@@ -898,7 +1034,7 @@ export default function SalesOrderDashboard() {
                       <span className="font-mono font-black text-white text-sm">{item.code}</span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${badgeColor}`}>{currentCondition}</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mb-3">{item.class} ({item.model})</div>
+                    <div className="text-[10px] text-slate-400 mb-3">{item.class}</div>
                   </div>
                   <div className="pt-2 border-t border-slate-800">
                     <select value={currentCondition} onChange={(e) => updateFleetCondition(item.code, e.target.value)} className="w-full text-[10px] font-bold px-2 py-1.5 bg-[#0b0e17] border border-slate-700 text-slate-200 rounded-xl outline-none cursor-pointer">
