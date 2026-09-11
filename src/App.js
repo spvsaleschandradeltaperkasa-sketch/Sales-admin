@@ -186,6 +186,7 @@ export default function SalesOrderDashboard() {
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Sedang berjalan di lapangan',
       catatanLogistik: 'Tolong bawakan attachment Breaker dan selang hidrolik cadangan ke lokasi.',
+      statusLogistik: '🚚 Dalam Perjalanan (OTW)',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
       namaOperator: 'Baharuddin',
@@ -217,7 +218,8 @@ export default function SalesOrderDashboard() {
       rencanaDurasi: durasiString,
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Menunggu alokasi lapangan',
-      catatanLogistik: 'Belum ada catatan logistik',
+      catatanLogistik: 'Belum ada catatan khusus',
+      statusLogistik: '⏳ Menunggu Jadwal Muat',
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -276,6 +278,12 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateStatusLogistik = (id, newLogistikStatus) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, statusLogistik: newLogistikStatus } : order
+    ));
+  };
+
   const updateStatus = (id, newStatus) => {
     setOrderList(orderList.map(order => 
       order.id === id ? { ...order, status: newStatus } : order
@@ -295,7 +303,7 @@ export default function SalesOrderDashboard() {
   };
 
   const sendLogisticsWhatsApp = (order) => {
-    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus:* _${order.catatanLogistik}_\n\nMohon segera ditindaklanjuti. Terima kasih!`;
+    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus:* _${order.catatanLogistik}_\n- *Status Pengiriman:* ${order.statusLogistik}\n\nMohon segera ditindaklanjuti. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -620,6 +628,67 @@ export default function SalesOrderDashboard() {
                     </tr>
                   ))
                 )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* PANEL KHUSUS TIM LOGISTIK & PENGIRIMAN ARMADA */}
+        <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-purple-500/30">
+                Dashboard Khusus Driver & Angkutan Tronton
+              </div>
+              <h2 className="text-xl font-black text-white">Panel Pengiriman & Mobilisasi Logistik</h2>
+              <p className="text-xs text-slate-400">Pantau unit yang harus dimuat, instruksi khusus perlengkapan (breaker/solar), dan status pengiriman ke lokasi</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                  <th className="py-3 px-4">No. Order</th>
+                  <th className="py-3 px-4">Tujuan & Lokasi Proyek</th>
+                  <th className="py-3 px-4 text-amber-400">Unit Digeser</th>
+                  <th className="py-3 px-4 text-purple-300">Instruksi / Catatan Logistik</th>
+                  <th className="py-3 px-4 text-center">Status Pengiriman Logistik</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-sm">
+                {orderList.map((order) => (
+                  <tr key={'log-' + order.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-4 px-4 font-mono font-bold text-purple-400">{order.id}</td>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-white">{order.customer}</div>
+                      <div className="text-xs text-slate-400">{order.namaProyek} — <span className="text-teal-300 font-semibold">{order.lokasi}</span></div>
+                    </td>
+                    <td className="py-4 px-4 font-mono font-bold text-amber-300">
+                      {order.kodeUnit}
+                    </td>
+                    <td className="py-4 px-4 text-xs font-mono text-purple-200">
+                      {order.catatanLogistik}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <select
+                        value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'}
+                        onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
+                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all ${
+                          order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' 
+                            ? 'bg-blue-950 border-blue-500 text-blue-300' 
+                            : order.statusLogistik === '✅ Tiba di Lokasi Proyek' 
+                            ? 'bg-emerald-950 border-emerald-500 text-emerald-300' 
+                            : 'bg-slate-950 border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Jadwal Muat</option>
+                        <option value="🚚 Dalam Perjalanan (OTW)">🚚 Dalam Perjalanan (OTW)</option>
+                        <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi Proyek</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
