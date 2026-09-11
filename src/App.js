@@ -24,6 +24,9 @@ export default function SalesOrderDashboard() {
     'FAN': '6281234567893'  
   };
 
+  // Kontak Khusus Tim Logistik / Driver Angkutan Alat
+  const logisticsPhone = '6285165659907';
+
   const operatorDatabase = [
     'Baharuddin',
     'Saharuddin',
@@ -181,45 +184,18 @@ export default function SalesOrderDashboard() {
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jenisSewa: 'S1',
       rencanaDurasi: '3 Hari',
-      statusDurasi: 'Selesai Lebih Cepat',
-      catatanAktual: 'Selesai dalam 2 hari karena cuaca mendukung',
+      statusDurasi: 'Sesuai Rencana',
+      catatanAktual: 'Sedang berjalan di lapangan',
+      catatanLogistik: 'Tolong bawakan attachment Breaker dan selang hidrolik cadangan ke lokasi.',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
       namaOperator: 'Baharuddin',
-      status: 'Selesai / Close'
+      status: 'Unit Ready / Dispatched'
     }
   ]);
-
-  // State khusus untuk Data Admin Timesheet (Step 4)
-  const [timesheetList, setTimesheetList] = useState([
-    {
-      id: 'TS-001',
-      tanggal: '2026-03-30',
-      soId: 'SO-7208',
-      customer: 'PT Mahligai Artha Sejahtera',
-      kodeUnit: 'EXC.08',
-      operator: 'Baharuddin',
-      jamMulai: '08:00',
-      jamSelesai: '17:00',
-      totalJam: '8 Jam',
-      keterangan: 'Normal / Sesuai Target'
-    }
-  ]);
-
-  const [newTimesheet, setNewTimesheet] = useState({
-    tanggal: new Date().toISOString().split('T')[0],
-    soId: 'SO-7208',
-    customer: 'PT Mahligai Artha Sejahtera',
-    kodeUnit: 'EXC.08',
-    operator: 'Baharuddin',
-    jamMulai: '08:00',
-    jamSelesai: '17:00',
-    totalJam: '8 Jam',
-    keterangan: 'Operasional Lancar'
-  });
 
   const [fleetStatus, setFleetStatus] = useState({
-    'EXC.08': 'Ready',
+    'EXC.08': 'Working',
     'EXC.01': 'Ready',
     'MG-1': 'Breakdown'
   });
@@ -229,37 +205,6 @@ export default function SalesOrderDashboard() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTimesheetChange = (e) => {
-    const { name, value } = e.target;
-    setNewTimesheet(prev => {
-      const updated = { ...prev, [name]: value };
-      // Auto sinkronisasi data customer, unit, operator jika SO ID dipilih dari orderList
-      if (name === 'soId') {
-        const foundOrder = orderList.find(o => o.id === value);
-        if (foundOrder) {
-          updated.customer = foundOrder.customer;
-          updated.kodeUnit = foundOrder.kodeUnit;
-          updated.operator = foundOrder.namaOperator;
-        }
-      }
-      return updated;
-    });
-  };
-
-  const handleTimesheetSubmit = (e) => {
-    e.preventDefault();
-    const entryId = 'TS-' + Math.floor(100 + Math.random() * 900);
-    const entry = { id: entryId, ...newTimesheet };
-    setTimesheetList([entry, ...timesheetList]);
-    setNotification({
-      show: true,
-      message: `Timesheet harian #${entryId} berhasil dicatat ke sistem admin!`
-    });
-    setTimeout(() => {
-      setNotification({ show: false, message: '' });
-    }, 4000);
   };
 
   const handleSubmit = (e) => {
@@ -272,7 +217,8 @@ export default function SalesOrderDashboard() {
       ...formData,
       rencanaDurasi: durasiString,
       statusDurasi: 'Sesuai Rencana',
-      catatanAktual: 'Sedang berjalan di lapangan',
+      catatanAktual: 'Menunggu alokasi lapangan',
+      catatanLogistik: 'Belum ada catatan logistik',
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -325,6 +271,12 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateCatatanLogistik = (id, newLogistikNote) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, catatanLogistik: newLogistikNote } : order
+    ));
+  };
+
   const updateStatus = (id, newStatus) => {
     setOrderList(orderList.map(order => 
       order.id === id ? { ...order, status: newStatus } : order
@@ -337,10 +289,17 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Update Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Rencana: *${order.rencanaDurasi}* | Kondisi Waktu: *${order.statusDurasi}* (${order.catatanAktual}) | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `Halo ${order.sales}, Update Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Kondisi Waktu: *${order.statusDurasi}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
     const encodedMessage = encodeURIComponent(message);
-    
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
+    window.open(waUrl, '_blank');
+  };
+
+  // Fungsi Kirim Instruksi Khusus ke Tim Logistik / Driver Tronton via WhatsApp
+  const sendLogisticsWhatsApp = (order) => {
+    const message = `Halo Tim Logistik CV Chandra Delta Perkasa 🚚,\n\nAda instruksi mobilisasi / penyiapan alat untuk order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit yang Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus Logistik:* _${order.catatanLogistik}_\n\nMohon segera disiapkan pengangkutannya. Terima kasih!`;
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
@@ -482,12 +441,12 @@ export default function SalesOrderDashboard() {
           </form>
         </div>
 
-        {/* STEP 2: KEPALA OPERATOR, UNIT & EVALUASI WAKTU LAPANGAN */}
+        {/* STEP 2 & 3 INTEGRATED: ALOKASI UNIT, OPERATOR, WAKTU & CATATAN LOGISTIK */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2: Alokasi Unit, Operator & Monitoring Waktu Riil</h2>
-              <p className="text-xs text-slate-400">Sesuaikan status waktu jika pekerjaan lebih cepat atau mengalami perpanjangan (extend)</p>
+              <h2 className="text-xl font-black text-white">STEP 2 & 3: Alokasi Lapangan & Instruksi ke Tim Logistik</h2>
+              <p className="text-xs text-slate-400">Tentukan unit, tulis catatan khusus (cth: bawa breaker/solar), lalu kirim ke tim logistik/driver</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -514,9 +473,9 @@ export default function SalesOrderDashboard() {
                 <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">No. Order</th>
                   <th className="py-3 px-4">Customer / Proyek</th>
-                  <th className="py-3 px-4">Sales / Skema</th>
-                  <th className="py-3 px-4 text-teal-400">Evaluasi Waktu (Rencana vs Lapangan)</th>
+                  <th className="py-3 px-4 text-teal-400">Evaluasi Waktu Riil</th>
                   <th className="py-3 px-4 text-amber-400">Alokasi Unit & Operator</th>
+                  <th className="py-3 px-4 text-purple-400">Catatan Khusus untuk Logistik 🚚</th>
                   <th className="py-3 px-4">Status & Aksi WA</th>
                 </tr>
               </thead>
@@ -534,50 +493,37 @@ export default function SalesOrderDashboard() {
                       <td className="py-4 px-4">
                         <div className="font-bold text-white">{order.customer}</div>
                         <div className="text-xs text-slate-400">{order.namaProyek} ({order.lokasi})</div>
-                      </td>
-                      <td className="py-4 px-4 space-y-1">
-                        <div><span className="px-2 py-0.5 bg-slate-800 text-slate-200 font-bold text-xs rounded-lg">{order.sales}</span></div>
-                        <div><span className="px-2 py-0.5 bg-amber-950 text-amber-300 font-bold text-xs rounded-lg border border-amber-600/50">{order.jenisSewa}</span></div>
+                        <div className="mt-1"><span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded">Sales: {order.sales}</span></div>
                       </td>
                       
                       {/* KOLOM EVALUASI WAKTU */}
                       <td className="py-4 px-4 space-y-2">
-                        <div className="text-xs text-slate-400 flex items-center gap-1">
-                          <span>Target Awal:</span> 
-                          <span className="font-mono font-bold text-slate-200">{order.rencanaDurasi}</span>
-                        </div>
-                        
-                        <div>
-                          <select 
-                            value={order.statusDurasi} 
-                            onChange={(e) => updateStatusDurasi(order.id, e.target.value)}
-                            className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-teal-600/60 text-teal-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-teal-500"
-                          >
-                            <option value="Sesuai Rencana">🟢 Sesuai Rencana</option>
-                            <option value="Selesai Lebih Cepat">⚡ Selesai Lebih Cepat</option>
-                            <option value="Extend / Perpanjangan">⏱️ Extend / Perpanjangan</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <input 
-                            type="text" 
-                            value={order.catatanAktual} 
-                            onChange={(e) => updateCatatanAktual(order.id, e.target.value)}
-                            placeholder="Catatan (cth: Selesai 2 hari / Tambah 2 hari)"
-                            className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-teal-500"
-                          />
-                        </div>
+                        <div className="text-xs text-slate-400">Target: <span className="font-mono text-slate-200 font-bold">{order.rencanaDurasi}</span></div>
+                        <select 
+                          value={order.statusDurasi} 
+                          onChange={(e) => updateStatusDurasi(order.id, e.target.value)}
+                          className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-teal-600/60 text-teal-300 rounded-lg outline-none cursor-pointer"
+                        >
+                          <option value="Sesuai Rencana">🟢 Sesuai Rencana</option>
+                          <option value="Selesai Lebih Cepat">⚡ Selesai Lebih Cepat</option>
+                          <option value="Extend / Perpanjangan">⏱️ Extend / Perpanjangan</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          value={order.catatanAktual} 
+                          onChange={(e) => updateCatatanAktual(order.id, e.target.value)}
+                          placeholder="Catatan waktu..."
+                          className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none"
+                        />
                       </td>
                       
-                      {/* KOLOM UNIT & NAMA OPERATOR */}
+                      {/* KOLOM UNIT & OPERATOR */}
                       <td className="py-4 px-4 space-y-2">
                         <div>
-                          <label className="block text-[10px] text-slate-400 font-bold uppercase mb-0.5">Kode Unit:</label>
                           <select 
                             value={order.kodeUnit} 
                             onChange={(e) => updateKodeUnit(order.id, e.target.value)}
-                            className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-amber-500"
+                            className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer"
                           >
                             <option value="Belum Dipilih">-- Pilih Unit --</option>
                             {fleetDatabase.map((unit) => (
@@ -585,13 +531,11 @@ export default function SalesOrderDashboard() {
                             ))}
                           </select>
                         </div>
-
                         <div>
-                          <label className="block text-[10px] text-slate-400 font-bold uppercase mb-0.5">Nama Operator:</label>
                           <select 
                             value={order.namaOperator} 
                             onChange={(e) => updateOperator(order.id, e.target.value)}
-                            className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-emerald-600/60 text-emerald-300 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-emerald-500"
+                            className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-emerald-600/60 text-emerald-300 rounded-lg outline-none cursor-pointer"
                           >
                             <option value="Belum Ditentukan">-- Pilih Operator --</option>
                             {operatorDatabase.map((opName) => (
@@ -601,14 +545,32 @@ export default function SalesOrderDashboard() {
                         </div>
                       </td>
 
+                      {/* KOLOM CATATAN KHUSUS UNTUK TIM LOGISTIK */}
+                      <td className="py-4 px-4 space-y-2">
+                        <textarea 
+                          rows="2"
+                          value={order.catatanLogistik}
+                          onChange={(e) => updateCatatanLogistik(order.id, e.target.value)}
+                          placeholder="Contoh: Bawa breaker di bawah, siapkan selang tambahan..."
+                          className="w-full text-xs font-mono p-2 bg-slate-950 border border-purple-600/50 text-purple-200 rounded-lg outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                        <button 
+                          onClick={() => sendLogisticsWhatsApp(order)}
+                          className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
+                        >
+                          🚚 Kirim Catatan ke Logistik WA
+                        </button>
+                      </td>
+
+                      {/* KOLOM STATUS & NOTIFIKASI SALES */}
                       <td className="py-4 px-4 space-y-2">
                         <select 
                           value={order.status} 
                           onChange={(e) => updateStatus(order.id, e.target.value)}
                           className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 outline-none cursor-pointer"
                         >
-                          <option value="Menunggu Alokasi Unit">⏳ Menunggu Alokasi Unit</option>
-                          <option value="Unit Ready / Dispatched">🚀 Unit Ready / Dispatched</option>
+                          <option value="Menunggu Alokasi Unit">⏳ Menunggu Alokasi</option>
+                          <option value="Unit Ready / Dispatched">🚀 Dispatched / Dikirim</option>
                           <option value="Selesai / Close">✅ Selesai / Close</option>
                         </select>
 
@@ -616,7 +578,7 @@ export default function SalesOrderDashboard() {
                           onClick={() => sendWhatsAppNotification(order)}
                           className="w-full py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
                         >
-                          💬 Info WA ({order.sales})
+                          💬 Info Sales ({order.sales})
                         </button>
                       </td>
                     </tr>
@@ -627,12 +589,12 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* STEP 3: MONITORING KONDISI ARMADA */}
+        {/* STEP 4: MONITORING KONDISI ARMADA */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 3: Monitoring Kondisi Fisik Armada</h2>
-              <p className="text-xs text-slate-400">Total {fleetDatabase.length} unit terdaftar. Kelola status real-time (*Ready, Standby, Working, Breakdown*)</p>
+              <h2 className="text-xl font-black text-white">Monitoring Kondisi Fisik Armada</h2>
+              <p className="text-xs text-slate-400">Total {fleetDatabase.length} unit terdaftar. Kelola status real-time</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -712,102 +674,6 @@ export default function SalesOrderDashboard() {
                     );
                   })
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* STEP 4: ADMIN TIMESHEET & LAPORAN HARIAN OPERATOR */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-          <h2 className="text-xl font-black text-white mb-1">STEP 4: Admin Timesheet & Rekap Jam Kerja Harian</h2>
-          <p className="text-xs text-slate-400 mb-6">Pencatatan real-time jam kerja alat dan operator dari lapangan untuk rekapitulasi penagihan akhir</p>
-
-          <form onSubmit={handleTimesheetSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-slate-950 p-4 border border-slate-800 rounded-2xl mb-6">
-            <div>
-              <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Tanggal</label>
-              <input 
-                type="date" 
-                name="tanggal" 
-                value={newTimesheet.tanggal} 
-                onChange={handleTimesheetChange} 
-                required 
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none focus:ring-2 focus:ring-teal-500" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Pilih Order (SO)</label>
-              <select 
-                name="soId" 
-                value={newTimesheet.soId} 
-                onChange={handleTimesheetChange} 
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-blue-400 outline-none cursor-pointer focus:ring-2 focus:ring-teal-500"
-              >
-                {orderList.map(ord => (
-                  <option key={ord.id} value={ord.id}>{ord.id} - {ord.customer}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Unit & Operator</label>
-              <input 
-                type="text" 
-                readOnly 
-                value={`${newTimesheet.kodeUnit} / ${newTimesheet.operator}`} 
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-amber-300 font-mono font-bold" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Total Jam / Sesi</label>
-              <input 
-                type="text" 
-                name="totalJam" 
-                value={newTimesheet.totalJam} 
-                onChange={handleTimesheetChange} 
-                placeholder="Cth: 8 Jam / Lembur +2 Jam" 
-                required 
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 outline-none font-bold focus:ring-2 focus:ring-teal-500" 
-              />
-            </div>
-
-            <div className="flex items-end">
-              <button type="submit" className="w-full py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow transition-all cursor-pointer">
-                + Input Timesheet
-              </button>
-            </div>
-          </form>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">ID Timesheet</th>
-                  <th className="py-3 px-4">Tanggal & SO</th>
-                  <th className="py-3 px-4">Customer</th>
-                  <th className="py-3 px-4">Unit & Operator</th>
-                  <th className="py-3 px-4 text-teal-400">Total Jam Aktual</th>
-                  <th className="py-3 px-4">Keterangan Lapangan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-sm">
-                {timesheetList.map(ts => (
-                  <tr key={ts.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-teal-400 text-xs">{ts.id}</td>
-                    <td className="py-3 px-4">
-                      <div className="font-mono text-xs text-slate-300">{ts.tanggal}</div>
-                      <div className="font-mono text-[11px] text-blue-400 font-bold">{ts.soId}</div>
-                    </td>
-                    <td className="py-3 px-4 text-xs font-semibold text-white">{ts.customer}</td>
-                    <td className="py-3 px-4">
-                      <div className="font-mono text-xs font-bold text-amber-300">{ts.kodeUnit}</div>
-                      <div className="text-xs text-emerald-400">{ts.operator}</div>
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-teal-300 text-xs">{ts.totalJam}</td>
-                    <td className="py-3 px-4 text-xs text-slate-300">{ts.keterangan}</td>
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
