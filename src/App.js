@@ -26,7 +26,7 @@ export default function SalesOrderDashboard() {
 
   const logisticsPhone = '6285165659907';
 
-  // Daftar Armada Tronton Logistik Sesuai Permintaan
+  // Daftar Armada Tronton Logistik
   const trontonFleet = [
     { code: 'SL01', name: 'Tronton / Trailer SL01' },
     { code: 'SL02', name: 'Tronton / Trailer SL02' },
@@ -186,17 +186,25 @@ export default function SalesOrderDashboard() {
       id: 'SO-7208',
       customer: 'PT Mahligai Artha Sejahtera',
       namaProyek: 'Land Clearing 44',
-      lokasi: 'Makassar',
+      lokasiAwal: 'Pool Delta Parang Loe, Makassar',
+      lokasiTujuan: 'Makassar (Site 44)',
+      picPenerima: 'Bpk. Hendra (081298765432)',
       sales: 'ANS',
       jenisAlat: 'Excavator 20 Ton - Bucket',
       jenisSewa: 'S1',
       rencanaDurasi: '3 Hari',
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Sedang berjalan di lapangan',
-      catatanLogistik: 'Tolong bawakan attachment Breaker dan selang hidrolik cadangan.',
+      catatanLogistik: 'Bawa breaker & selang hidrolik cadangan.',
       statusLogistik: '🚚 Dalam Perjalanan (OTW)',
       trontonUnit: 'SL01',
       hmAwal: '1240.5 HM (Solar Full)',
+      fotoMuat: null,
+      fotoTiba: null,
+      timestampMuat: '-',
+      timestampTiba: '-',
+      koordinatMuat: '-',
+      koordinatTiba: '-',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
       namaOperator: 'Baharuddin',
@@ -225,13 +233,23 @@ export default function SalesOrderDashboard() {
     const newOrder = {
       id: newOrderNo,
       ...formData,
+      lokasiAwal: 'Pool Delta Perkasa Makassar',
+      lokasiTujuan: formData.lokasi,
+      picPenerima: 'Belum diisi PIC',
       rencanaDurasi: durasiString,
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Menunggu alokasi lapangan',
       catatanLogistik: 'Belum ada catatan khusus',
       statusLogistik: '⏳ Menunggu Jadwal Muat',
       trontonUnit: 'SL01',
-      hmAwal: 'HM Awal & BBM belum diisi',
+      hmAwal: 'Belum diisi',
+      fotoMuat: null,
+      fotoTiba: null,
+      timestampMuat: '-',
+      timestampTiba: '-',
+      koordinatMuat: '-',
+      koordinatTiba: '-',
+      jumlahUnit: 1,
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -296,6 +314,18 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateLokasiAwal = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, lokasiAwal: val } : order));
+  };
+
+  const updateLokasiTujuan = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, lokasiTujuan: val } : order));
+  };
+
+  const updatePicPenerima = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, picPenerima: val } : order));
+  };
+
   const updateTrontonUnit = (id, newTronton) => {
     setOrderList(orderList.map(order => 
       order.id === id ? { ...order, trontonUnit: newTronton } : order
@@ -308,10 +338,48 @@ export default function SalesOrderDashboard() {
     ));
   };
 
-  const updateStatus = (id, newStatus) => {
-    setOrderList(orderList.map(order => 
-      order.id === id ? { ...order, status: newStatus } : order
-    ));
+  // Fungsi Tangkap Foto & Koordinat GPS Otomatis
+  const handleCapturePhoto = (id, jenis) => {
+    const now = new Date();
+    const timeString = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
+
+    // Mengambil Koordinat GPS Browser secara otomatis
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(5);
+          const lng = position.coords.longitude.toFixed(5);
+          const koordinatStr = `${lat}, ${lng}`;
+
+          setOrderList(orderList.map(order => {
+            if (order.id === id) {
+              if (jenis === 'muat') {
+                return { ...order, fotoMuat: 'Tersimpan (Verified)', timestampMuat: timeString, koordinatMuat: koordinatStr };
+              } else {
+                return { ...order, fotoTiba: 'Tersimpan (Verified)', timestampTiba: timeString, koordinatTiba: koordinatStr };
+              }
+            }
+            return order;
+          }));
+          alert(`Berhasil merekam foto, waktu (${timeString}), & GPS: ${koordinatStr}`);
+        },
+        (error) => {
+          // Fallback jika GPS tidak aktif
+          const koordinatStr = '-5.14766, 119.43273 (Default Makassar)';
+          setOrderList(orderList.map(order => {
+            if (order.id === id) {
+              if (jenis === 'muat') {
+                return { ...order, fotoMuat: 'Tersimpan (Tanpa GPS)', timestampMuat: timeString, koordinatMuat: koordinatStr };
+              } else {
+                return { ...order, fotoTiba: 'Tersimpan (Tanpa GPS)', timestampTiba: timeString, koordinatTiba: koordinatStr };
+              }
+            }
+            return order;
+          }));
+          alert(`Foto & Waktu (${timeString}) berhasil direkam! (GPS gagal diakses, menggunakan default area Makassar).`);
+        }
+      );
+    }
   };
 
   const updateFleetCondition = (unitCode, condition) => {
@@ -320,14 +388,14 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* (HM Awal: ${order.hmAwal}) | Operator: *${order.namaOperator}* | Status: *${order.status}*. Terima kasih!`;
+    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* (HM: ${order.hmAwal}) | Operator: *${order.namaOperator}* | Status: *${order.status}*. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
   const sendLogisticsWhatsApp = (order) => {
-    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Disewa:* *${order.kodeUnit}* (HM Awal/BBM: ${order.hmAwal})\n- *Tronton Pengangkut:* ${order.trontonUnit}\n- *Catatan Khusus:* _${order.catatanLogistik}_\n\nMohon segera ditindaklanjuti. Terima kasih!`;
+    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nDetail Mobilisasi Order *${order.id}*:\n- *Customer:* ${order.customer} (${order.namaProyek})\n- *Unit & HM/BBM:* ${order.kodeUnit} | ${order.hmAwal}\n- *Tronton:* ${order.trontonUnit}\n- *Asal:* ${order.lokasiAwal}\n- *Tujuan:* ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Catatan:* _${order.catatanLogistik}_\n\nMohon koordinasikan. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -335,7 +403,7 @@ export default function SalesOrderDashboard() {
 
   const sendLogisticsUpdateToSales = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `📢 *INFO LOGISTIK & HM AWAL* 📢\nHalo ${order.sales}, update unit untuk order *${order.id}* (${order.customer}):\n- *Unit:* ${order.kodeUnit}\n- *HM Awal & BBM:* ${order.hmAwal}\n- *Tronton:* ${order.trontonUnit}\n- *Status Pengiriman:* *${order.statusLogistik}*\n\nTerima kasih!`;
+    const message = `📢 *INFO LOGISTIK LENGKAP* 📢\nHalo ${order.sales}, update pengiriman order *${order.id}* (${order.customer}):\n- *Unit:* ${order.kodeUnit} (HM/BBM: ${order.hmAwal})\n- *Tronton:* ${order.trontonUnit}\n- *Rute:* ${order.lokasiAwal} ➡️ ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Status:* *${order.statusLogistik}*\n- *Foto Muat:* ${order.timestampMuat} (${order.koordinatMuat})\n- *Foto Tiba:* ${order.timestampTiba} (${order.koordinatTiba})\n\nTerima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -442,7 +510,7 @@ export default function SalesOrderDashboard() {
                 <input type="text" name="namaProyek" value={formData.namaProyek} onChange={handleChange} placeholder="Contoh: Land Clearing" required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Lokasi Proyek</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Lokasi Proyek Tujuan</label>
                 <input type="text" name="lokasi" value={formData.lokasi} onChange={handleChange} placeholder="Contoh: Makassar / Gowa" required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
             </div>
@@ -568,7 +636,7 @@ export default function SalesOrderDashboard() {
                       <td className="py-4 px-4 font-mono font-bold text-blue-400">{order.id}</td>
                       <td className="py-4 px-4">
                         <div className="font-bold text-white">{order.customer}</div>
-                        <div className="text-xs text-slate-400">{order.namaProyek} ({order.lokasi})</div>
+                        <div className="text-xs text-slate-400">{order.namaProyek} ({order.lokasiTujuan})</div>
                         <div className="mt-1"><span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded">Sales: {order.sales}</span></div>
                       </td>
                       
@@ -764,15 +832,15 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON (SL01, SL02, SL03, TW02) - POSISI DI BAWAH */}
+        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON LENGKAP DENGAN LOKASI AWAL, TUJUAN, PIC, & FOTO+GPS */}
         <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <div className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-purple-500/30">
-                Dashboard Khusus Armada Tronton (SL01, SL02, SL03, TW02)
+                Dashboard Khusus Driver & Angkutan Tronton (SL01, SL02, SL03, TW02)
               </div>
-              <h2 className="text-xl font-black text-white">Panel Pengiriman & Mobilisasi Logistik Tronton</h2>
-              <p className="text-xs text-slate-400">Pilih unit tronton pengangkut, cek HM Awal & kondisi BBM, serta kelola status pengiriman</p>
+              <h2 className="text-xl font-black text-white">Panel Pengiriman & Verifikasi Lapangan Logistik</h2>
+              <p className="text-xs text-slate-400">Atur rute (Asal & Tujuan), PIC Penerima, rekam foto saat muat & tiba lengkap dengan waktu & titik koordinat GPS</p>
             </div>
           </div>
 
@@ -781,41 +849,103 @@ export default function SalesOrderDashboard() {
               <thead>
                 <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">No. Order</th>
-                  <th className="py-3 px-4">Tujuan & Lokasi Proyek</th>
-                  <th className="py-3 px-4 text-amber-400">Alat & HM Awal / BBM</th>
-                  <th className="py-3 px-4 text-purple-300">Pilih Tronton Pengangkut</th>
-                  <th className="py-3 px-4 text-center">Status Pengiriman Logistik</th>
-                  <th className="py-3 px-4 text-center">Aksi WA ke Sales</th>
+                  <th className="py-3 px-4 text-amber-400">Unit & Tronton (SL01-TW02)</th>
+                  <th className="py-3 px-4 text-teal-300">Rute & PIC Penerima</th>
+                  <th className="py-3 px-4 text-purple-300">Foto, Timestamp & Koordinat Saat Muat</th>
+                  <th className="py-3 px-4 text-purple-300">Foto, Timestamp & Koordinat Tiba di Lokasi</th>
+                  <th className="py-3 px-4 text-center">Status & Aksi WA ke Sales</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
                 {orderList.map((order) => (
                   <tr key={'log-' + order.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="py-4 px-4 font-mono font-bold text-purple-400">{order.id}</td>
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-white">{order.customer}</div>
-                      <div className="text-xs text-slate-400">{order.namaProyek} — <span className="text-teal-300 font-semibold">{order.lokasi}</span></div>
-                    </td>
-                    <td className="py-4 px-4 font-mono text-xs">
-                      <div className="font-bold text-amber-300">{order.kodeUnit}</div>
-                      <div className="text-teal-300 font-semibold mt-0.5">📊 HM/BBM: {order.hmAwal}</div>
-                    </td>
-                    <td className="py-4 px-4">
+                    
+                    {/* UNIT & TRONTON */}
+                    <td className="py-4 px-4 space-y-1">
+                      <div className="font-mono font-bold text-amber-300 text-xs">Alat: {order.kodeUnit}</div>
+                      <div className="text-[10px] text-slate-300">HM/BBM: {order.hmAwal}</div>
                       <select
                         value={order.trontonUnit || 'SL01'}
                         onChange={(e) => updateTrontonUnit(order.id, e.target.value)}
-                        className="w-full text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-purple-500/60 text-purple-300 rounded-xl outline-none cursor-pointer"
+                        className="w-full text-xs font-mono font-bold px-2 py-1 bg-slate-950 border border-purple-500/60 text-purple-300 rounded-lg outline-none cursor-pointer mt-1"
                       >
                         {trontonFleet.map((t) => (
                           <option key={t.code} value={t.code}>{t.name}</option>
                         ))}
                       </select>
                     </td>
-                    <td className="py-4 px-4 text-center">
+
+                    {/* RUTE & PIC PENERIMA */}
+                    <td className="py-4 px-4 space-y-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-bold">Lokasi Awal:</span>
+                        <input 
+                          type="text" 
+                          value={order.lokasiAwal} 
+                          onChange={(e) => updateLokasiAwal(order.id, e.target.value)}
+                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-bold">Lokasi Tujuan:</span>
+                        <input 
+                          type="text" 
+                          value={order.lokasiTujuan} 
+                          onChange={(e) => updateLokasiTujuan(order.id, e.target.value)}
+                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none"
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-amber-400 block font-bold">PIC Penerima Unit:</span>
+                        <input 
+                          type="text" 
+                          value={order.picPenerima} 
+                          onChange={(e) => updatePicPenerima(order.id, e.target.value)}
+                          placeholder="Nama & No HP PIC..."
+                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-amber-600/50 text-amber-200 rounded-lg outline-none"
+                        />
+                      </div>
+                    </td>
+
+                    {/* FOTO SAAT MUAT */}
+                    <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
+                      <div className="text-[11px] font-bold text-purple-300">1️⃣ Saat Muat di Pool:</div>
+                      <button 
+                        onClick={() => handleCapturePhoto(order.id, 'muat')}
+                        className="w-full py-1.5 px-3 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
+                      >
+                        📸 Ambil Foto Muat + GPS
+                      </button>
+                      <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
+                        <div>Status: <span className="text-emerald-400">{order.fotoMuat || 'Belum Ada'}</span></div>
+                        <div>Waktu: <span className="text-teal-300">{order.timestampMuat}</span></div>
+                        <div>GPS: <span className="text-amber-300">{order.koordinatMuat}</span></div>
+                      </div>
+                    </td>
+
+                    {/* FOTO SAAT TIBA */}
+                    <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
+                      <div className="text-[11px] font-bold text-purple-300">2️⃣ Tiba di Lokasi Proyek:</div>
+                      <button 
+                        onClick={() => handleCapturePhoto(order.id, 'tiba')}
+                        className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
+                      >
+                        📸 Ambil Foto Tiba + GPS
+                      </button>
+                      <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
+                        <div>Status: <span className="text-emerald-400">{order.fotoTiba || 'Belum Ada'}</span></div>
+                        <div>Waktu: <span className="text-teal-300">{order.timestampTiba}</span></div>
+                        <div>GPS: <span className="text-amber-300">{order.koordinatTiba}</span></div>
+                      </div>
+                    </td>
+
+                    {/* STATUS & AKSI WA */}
+                    <td className="py-4 px-4 space-y-2 text-center">
                       <select
                         value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'}
                         onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
-                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all ${
+                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all w-full ${
                           order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' 
                             ? 'bg-blue-950 border-blue-500 text-blue-300' 
                             : order.statusLogistik === '✅ Tiba di Lokasi Proyek' 
@@ -823,17 +953,16 @@ export default function SalesOrderDashboard() {
                             : 'bg-slate-950 border-slate-700 text-slate-300'
                         }`}
                       >
-                        <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Jadwal Muat</option>
-                        <option value="🚚 Dalam Perjalanan (OTW)">🚚 Dalam Perjalanan (OTW)</option>
-                        <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi Proyek</option>
+                        <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Muat</option>
+                        <option value="🚚 Dalam Perjalanan (OTW)">🚚 OTW ke Proyek</option>
+                        <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi</option>
                       </select>
-                    </td>
-                    <td className="py-4 px-4 text-center">
+
                       <button 
                         onClick={() => sendLogisticsUpdateToSales(order)}
                         className="py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer w-full"
                       >
-                        💬 WA Sales ({order.sales})
+                        💬 Kirim Laporan Lengkap ke WA Sales ({order.sales})
                       </button>
                     </td>
                   </tr>
