@@ -80,6 +80,36 @@ export default function DeltaPerkasaApp() {
       pencukupan: '1,00',
       keterangan: 'Cukup 200 Jam',
       jamDuniaHm: 'Hour Meter'
+    },
+    {
+      id: 'TS-02',
+      kodeGajiOperator: '1907',
+      kodeTagih: '2292',
+      jobId: '0320-0526-ANS-S1',
+      tanggal: '11-Sep-26',
+      hari: 'Jumat',
+      operator: 'BUSTAM',
+      attach: 'Bucket',
+      unitCode: 'EXC.92',
+      model: 'SY215H',
+      namaPenyewa: 'MAHLIGAI ARTHA SEJAHTERA',
+      alamat: 'Buleleng, Bungku Pesisir, Morowali',
+      jobVia: 'ANS',
+      jamMulai: '08:00',
+      jamSelesai: '17:00',
+      durasiIstirahat: '1',
+      standby: '0',
+      totalJamKerja: '8,00',
+      ot: '0',
+      hmStart: '1.032,5',
+      hmEnd: '1.032,7',
+      totalHm: '0,2',
+      unitWorkingHour: '0,22',
+      operatorWorkingHour: '0,22',
+      hariKerjaAlat: '1,00',
+      pencukupan: '1,00',
+      keterangan: 'Kelebihan periode sebelumnya',
+      jamDuniaHm: 'Hour Meter'
     }
   ]);
 
@@ -105,7 +135,7 @@ export default function DeltaPerkasaApp() {
 
   const [timesheetForm, setTimesheetForm] = useState({
     kodeGajiOperator: '1907',
-    kodeTagih: '2173',
+    kodeTagih: '2292',
     jobId: '0320-0526-ANS-S1',
     tanggal: '11-Sep-26',
     hari: 'Jumat',
@@ -120,17 +150,19 @@ export default function DeltaPerkasaApp() {
     jamSelesai: '17:00',
     durasiIstirahat: '1',
     standby: '0',
+    totalJamKerja: '8,00',
     ot: '0',
-    hmStart: '1030.0',
-    hmEnd: '1032.5',
-    pencukupan: '1.00',
-    keterangan: 'Cukup Operasional',
+    hmStart: '1.032,5',
+    hmEnd: '1.032,7',
+    totalHm: '0,2',
+    unitWorkingHour: '0,22',
+    operatorWorkingHour: '0,22',
+    hariKerjaAlat: '1,00',
+    pencukupan: '1,00',
+    keterangan: 'Operasional Normal',
     jamDuniaHm: 'Hour Meter'
   });
 
-  const [selectedSalesFilter, setSelectedSalesFilter] = useState('ALL');
-  const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
-  const [fleetSearchQuery, setFleetSearchQuery] = useState('');
   const [notification, setNotification] = useState({ show: false, message: '' });
 
   const fileInputRef = useRef(null);
@@ -212,11 +244,9 @@ export default function DeltaPerkasaApp() {
     const newRow = {
       id: newTsId,
       ...timesheetForm,
-      totalJamKerja: '8,00',
       totalHm: totalHMVal,
       unitWorkingHour: totalHMVal,
-      operatorWorkingHour: totalHMVal,
-      hariKerjaAlat: '1,00'
+      operatorWorkingHour: totalHMVal
     };
 
     setTimesheetList([newRow, ...timesheetList]);
@@ -252,8 +282,10 @@ export default function DeltaPerkasaApp() {
       csvContent += "No Order,Customer,Proyek,Sales,Request Alat,Jumlah Unit,Skema,Lokasi Tujuan,Unit,Operator,Status\n";
       orderList.forEach(o => { csvContent += `${o.id},"${o.customer}","${o.namaProyek}",${o.sales},"${o.jenisAlat}",${o.jumlahUnit},${o.jenisSewa},"${o.lokasiTujuan}",${o.kodeUnit},"${o.namaOperator}","${o.status}"\n`; });
     } else {
-      csvContent += "Kode Gaji,Kode Tagih,Job ID,Tanggal,Operator,Unit,Nama Penyewa,HM Start,HM End,Total HM\n";
-      timesheetList.forEach(ts => { csvContent += `${ts.kodeGajiOperator},${ts.kodeTagih},${ts.jobId},${ts.tanggal},${ts.operator},${ts.unitCode},"${ts.namaPenyewa}",${ts.hmStart},${ts.hmEnd},${ts.totalHm}\n`; });
+      csvContent += "Kode Gaji,Kode Tagih,Job ID,Tanggal,Hari,Operator,Attach,Unit Code,Model,Nama Penyewa,Alamat,Job Via,Jam Mulai,Jam Selesai,Istirahat,Standby,Total Jam Kerja,OT,HM Start,HM End,Total HM,Unit WH,Op WH,Hari Kerja,Pencukupan,Keterangan,Jam Dunia\n";
+      timesheetList.forEach(ts => { 
+        csvContent += `${ts.kodeGajiOperator},${ts.kodeTagih},${ts.jobId},${ts.tanggal},${ts.hari},${ts.operator},${ts.attach},${ts.unitCode},${ts.model},"${ts.namaPenyewa}","${ts.alamat}",${ts.jobVia},${ts.jamMulai},${ts.jamSelesai},${ts.durasiIstirahat},${ts.standby},${ts.totalJamKerja},${ts.ot},${ts.hmStart},${ts.hmEnd},${ts.totalHm},${ts.unitWorkingHour},${ts.operatorWorkingHour},${ts.hariKerjaAlat},${ts.pencukupan},"${ts.keterangan}",${ts.jamDuniaHm}\n`; 
+      });
     }
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csvContent));
@@ -451,90 +483,196 @@ export default function DeltaPerkasaApp() {
           </div>
         )}
 
-        {/* 3. TAMPILAN KHUSUS URL TIMESHEET (?role=timesheet) */}
+        {/* 3. TAMPILAN KHUSUS URL TIMESHEET (?role=timesheet) - DISESUAIKAN DENGAN TABEL */}
         {(currentRole === 'timesheet' || currentRole === 'management') && (
           <div className="bg-[#0b0e17] border border-emerald-500/30 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-lg font-black text-emerald-400">📊 Menu Admin Timesheet: Rekap Harian & Job ID</h2>
+                <h2 className="text-lg font-black text-emerald-400">📊 Menu Admin Timesheet: Sesuai Format Tabel Master</h2>
                 <p className="text-xs text-slate-400">Link khusus: <code className="text-emerald-300 bg-black/40 px-2 py-1 rounded">?role=timesheet</code></p>
               </div>
               <button onClick={() => exportToExcel('timesheet')} className="px-3 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl">📥 Export Timesheet Excel</button>
             </div>
 
-            <form onSubmit={handleTimesheetSubmit} className="space-y-4 bg-[#121824]/40 p-4 border border-slate-800 rounded-2xl">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* FORM INPUT TIMESHEET SESUAI KOLOM TABEL */}
+            <form onSubmit={handleTimesheetSubmit} className="space-y-4 bg-[#121824]/40 p-5 border border-slate-800 rounded-2xl">
+              <h3 className="text-xs font-black text-emerald-400 uppercase tracking-wider mb-2">+ Input Entri Timesheet Baru</h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Gaji</label>
+                  <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Kode Gaji Op.</label>
                   <input type="text" value={timesheetForm.kodeGajiOperator} onChange={(e) => setTimesheetForm({...timesheetForm, kodeGajiOperator: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Tagih</label>
+                  <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Kode Tagih</label>
                   <input type="text" value={timesheetForm.kodeTagih} onChange={(e) => setTimesheetForm({...timesheetForm, kodeTagih: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-emerald-400 uppercase mb-1">Job ID</label>
                   <input type="text" value={timesheetForm.jobId} onChange={(e) => setTimesheetForm({...timesheetForm, jobId: e.target.value})} required className="w-full px-3 py-2 bg-[#0b0e17] border border-emerald-600 rounded-xl text-xs font-mono font-bold text-emerald-300" />
                 </div>
                 <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal</label>
+                  <input type="text" value={timesheetForm.tanggal} onChange={(e) => setTimesheetForm({...timesheetForm, tanggal: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Hari</label>
+                  <input type="text" value={timesheetForm.hari} onChange={(e) => setTimesheetForm({...timesheetForm, hari: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Operator</label>
                   <select value={timesheetForm.operator} onChange={(e) => setTimesheetForm({...timesheetForm, operator: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs font-bold text-emerald-300">
                     {operatorDatabase.map(op => <option key={op} value={op}>{op}</option>)}
                   </select>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">HM Start</label>
-                  <input type="text" value={timesheetForm.hmStart} onChange={(e) => setTimesheetForm({...timesheetForm, hmStart: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">HM End</label>
-                  <input type="text" value={timesheetForm.hmEnd} onChange={(e) => setTimesheetForm({...timesheetForm, hmEnd: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-800 rounded-xl text-xs font-mono font-bold text-teal-300" />
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Attach.</label>
+                  <input type="text" value={timesheetForm.attach} onChange={(e) => setTimesheetForm({...timesheetForm, attach: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-amber-400 uppercase mb-1">Unit Code</label>
-                  <input type="text" value={timesheetForm.unitCode} onChange={(e) => setTimesheetForm({...timesheetForm, unitCode: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-amber-300" />
+                  <input type="text" value={timesheetForm.unitCode} onChange={(e) => setTimesheetForm({...timesheetForm, unitCode: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-amber-800 rounded-xl text-xs font-amber-300" />
                 </div>
                 <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Model</label>
+                  <input type="text" value={timesheetForm.model} onChange={(e) => setTimesheetForm({...timesheetForm, model: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Job Via</label>
+                  <input type="text" value={timesheetForm.jobVia} onChange={(e) => setTimesheetForm({...timesheetForm, jobVia: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="col-span-2">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Penyewa</label>
                   <input type="text" value={timesheetForm.namaPenyewa} onChange={(e) => setTimesheetForm({...timesheetForm, namaPenyewa: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Alamat Lokasi Kerja</label>
+                  <input type="text" value={timesheetForm.alamat} onChange={(e) => setTimesheetForm({...timesheetForm, alamat: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+              </div>
+
+              {/* BAGIAN UTAMA HM DAN HITUNGAN SESUAI GAMBAR 2 */}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 bg-teal-950/20 p-3 border border-teal-500/30 rounded-xl">
+                <div>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">HM Start</label>
+                  <input type="text" value={timesheetForm.hmStart} onChange={(e) => setTimesheetForm({...timesheetForm, hmStart: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-600 rounded-xl text-xs font-mono font-bold text-teal-300" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">HM End</label>
+                  <input type="text" value={timesheetForm.hmEnd} onChange={(e) => setTimesheetForm({...timesheetForm, hmEnd: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-teal-600 rounded-xl text-xs font-mono font-bold text-teal-300" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-teal-300 uppercase mb-1">Total HM</label>
+                  <input type="text" value={timesheetForm.totalHm} onChange={(e) => setTimesheetForm({...timesheetForm, totalHm: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs font-mono font-bold text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">OT</label>
+                  <input type="text" value={timesheetForm.ot} onChange={(e) => setTimesheetForm({...timesheetForm, ot: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs font-mono text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-cyan-400 uppercase mb-1">Unit Working Hour</label>
+                  <input type="text" value={timesheetForm.unitWorkingHour} onChange={(e) => setTimesheetForm({...timesheetForm, unitWorkingHour: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-cyan-700 rounded-xl text-xs font-mono text-cyan-300" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-cyan-400 uppercase mb-1">Op. Working Hour</label>
+                  <input type="text" value={timesheetForm.operatorWorkingHour} onChange={(e) => setTimesheetForm({...timesheetForm, operatorWorkingHour: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-cyan-700 rounded-xl text-xs font-mono text-cyan-300" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-yellow-300 uppercase mb-1">Hari Kerja Alat</label>
+                  <input type="text" value={timesheetForm.hariKerjaAlat} onChange={(e) => setTimesheetForm({...timesheetForm, hariKerjaAlat: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-yellow-600 rounded-xl text-xs font-mono text-yellow-300" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pencukupan</label>
+                  <input type="text" value={timesheetForm.pencukupan} onChange={(e) => setTimesheetForm({...timesheetForm, pencukupan: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs font-mono text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Keterangan</label>
+                  <input type="text" value={timesheetForm.keterangan} onChange={(e) => setTimesheetForm({...timesheetForm, keterangan: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Jam Dunia / HM</label>
+                  <input type="text" value={timesheetForm.jamDuniaHm} onChange={(e) => setTimesheetForm({...timesheetForm, jamDuniaHm: e.target.value})} className="w-full px-3 py-2 bg-[#0b0e17] border border-slate-700 rounded-xl text-xs text-white" />
                 </div>
               </div>
 
               <button type="submit" className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer">
-                + Simpan Entri Timesheet ke Spreadsheet &rarr;
+                + Simpan Entri Timesheet Lengkap ke Spreadsheet &rarr;
               </button>
             </form>
 
-            <div className="overflow-x-auto max-h-80">
+            {/* TABEL DATA TIMESHEET LENGKAP 27 KOLOM */}
+            <div className="overflow-x-auto max-h-96 border border-slate-800 rounded-2xl">
               <table className="w-full text-left border-collapse text-xs whitespace-nowrap font-mono">
                 <thead>
-                  <tr className="bg-[#121824] text-slate-300 uppercase text-[10px] border-b border-slate-700 sticky top-0">
-                    <th className="py-2 px-3 bg-emerald-950 text-emerald-300">Kode Gaji</th>
-                    <th className="py-2 px-3 bg-emerald-950 text-emerald-300">Job ID</th>
-                    <th className="py-2 px-3">Tanggal</th>
-                    <th className="py-2 px-3">Operator</th>
-                    <th className="py-2 px-3">Unit</th>
-                    <th className="py-2 px-3">Penyewa</th>
-                    <th className="py-2 px-3 bg-teal-950 text-teal-300">HM Start</th>
-                    <th className="py-2 px-3 bg-teal-950 text-teal-300">HM End</th>
-                    <th className="py-2 px-3 bg-teal-950 text-teal-300">Total HM</th>
+                  <tr className="bg-[#121824] text-slate-300 uppercase text-[9px] border-b border-slate-700 sticky top-0">
+                    <th className="py-2.5 px-3 bg-emerald-950 text-emerald-300">Kode Gaji</th>
+                    <th className="py-2.5 px-3 bg-emerald-950 text-emerald-300">Kode Tagih</th>
+                    <th className="py-2.5 px-3 text-emerald-400">Job ID</th>
+                    <th className="py-2.5 px-3">Tanggal</th>
+                    <th className="py-2.5 px-3">Hari</th>
+                    <th className="py-2.5 px-3">Operator</th>
+                    <th className="py-2.5 px-3">Attach.</th>
+                    <th className="py-2.5 px-3 text-amber-400">Unit Code</th>
+                    <th className="py-2.5 px-3">Model</th>
+                    <th className="py-2.5 px-3">Nama Penyewa</th>
+                    <th className="py-2.5 px-3">Alamat</th>
+                    <th className="py-2.5 px-3">Job Via</th>
+                    <th className="py-2.5 px-3">Jam Mulai</th>
+                    <th className="py-2.5 px-3">Jam Selesai</th>
+                    <th className="py-2.5 px-3">Istirahat</th>
+                    <th className="py-2.5 px-3">Standby</th>
+                    <th className="py-2.5 px-3">Total Jam</th>
+                    <th className="py-2.5 px-3">OT</th>
+                    <th className="py-2.5 px-3 bg-teal-950 text-teal-300">HM Start</th>
+                    <th className="py-2.5 px-3 bg-teal-950 text-teal-300">HM End</th>
+                    <th className="py-2.5 px-3 bg-teal-950 text-teal-300">Total HM</th>
+                    <th className="py-2.5 px-3 bg-cyan-950 text-cyan-300">Unit WH</th>
+                    <th className="py-2.5 px-3 bg-cyan-950 text-cyan-300">Op WH</th>
+                    <th className="py-2.5 px-3 bg-yellow-950 text-yellow-300">Hari Kerja</th>
+                    <th className="py-2.5 px-3">Pencukupan</th>
+                    <th className="py-2.5 px-3">Keterangan</th>
+                    <th className="py-2.5 px-3">Jam Dunia/HM</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {timesheetList.map((ts, idx) => (
                     <tr key={idx} className="hover:bg-slate-800/40">
                       <td className="py-2 px-3 text-emerald-300 font-bold">{ts.kodeGajiOperator}</td>
+                      <td className="py-2 px-3 text-emerald-300">{ts.kodeTagih}</td>
                       <td className="py-2 px-3 text-emerald-400 font-bold">{ts.jobId}</td>
                       <td className="py-2 px-3">{ts.tanggal}</td>
-                      <td className="py-2 px-3 text-white">{ts.operator}</td>
-                      <td className="py-2 px-3 text-amber-400">{ts.unitCode}</td>
+                      <td className="py-2 px-3">{ts.hari}</td>
+                      <td className="py-2 px-3 text-white font-bold">{ts.operator}</td>
+                      <td className="py-2 px-3 text-slate-300">{ts.attach}</td>
+                      <td className="py-2 px-3 text-amber-400 font-bold">{ts.unitCode}</td>
+                      <td className="py-2 px-3 text-slate-300">{ts.model}</td>
                       <td className="py-2 px-3 text-slate-200">{ts.namaPenyewa}</td>
+                      <td className="py-2 px-3 text-slate-400 text-[11px]">{ts.alamat}</td>
+                      <td className="py-2 px-3 text-amber-300">{ts.jobVia}</td>
+                      <td className="py-2 px-3">{ts.jamMulai}</td>
+                      <td className="py-2 px-3">{ts.jamSelesai}</td>
+                      <td className="py-2 px-3">{ts.durasiIstirahat}</td>
+                      <td className="py-2 px-3">{ts.standby}</td>
+                      <td className="py-2 px-3">{ts.totalJamKerja}</td>
+                      <td className="py-2 px-3 text-purple-300">{ts.ot}</td>
                       <td className="py-2 px-3 text-teal-300">{ts.hmStart}</td>
                       <td className="py-2 px-3 text-teal-300">{ts.hmEnd}</td>
-                      <td className="py-2 px-3 text-white font-bold">{ts.totalHm}</td>
+                      <td className="py-2 px-3 text-teal-400 font-bold">{ts.totalHm}</td>
+                      <td className="py-2 px-3 text-cyan-300 bg-cyan-950/20">{ts.unitWorkingHour}</td>
+                      <td className="py-2 px-3 text-cyan-300 bg-cyan-950/20">{ts.operatorWorkingHour}</td>
+                      <td className="py-2 px-3 text-yellow-300 bg-yellow-950/20 font-bold">{ts.hariKerjaAlat}</td>
+                      <td className="py-2 px-3">{ts.pencukupan}</td>
+                      <td className="py-2 px-3 text-slate-300">{ts.keterangan}</td>
+                      <td className="py-2 px-3 text-slate-400">{ts.jamDuniaHm}</td>
                     </tr>
                   ))}
                 </tbody>
