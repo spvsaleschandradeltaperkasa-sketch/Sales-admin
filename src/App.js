@@ -181,11 +181,14 @@ export default function DeltaPerkasaApp() {
     { code: 'VBR.01', class: 'Vibro 10 Ton', model: 'Vibro' }
   ];
 
-  const salesOptions = [{ label: 'ANS', value: 'ANS' }, { label: 'UCI', value: 'UCI' }, { label: 'CDP', value: 'CDP' }, { label: 'FAN', value: 'FAN' }];
+  const salesOptions = [{ label: 'ANS', value: 'ANS' }, { label: 'UCI', value: 'UCI' }, { label: 'CDP', value: 'CDP' }, { label: 'FAN', value: 'FAN' }, { label: 'CDF', value: 'CDF' }];
   const alatOptions = [
     { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
     { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
     { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY575 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
     { label: 'Vibro Roller', value: 'Vibro Roller' },
     { label: 'Bulldozer', value: 'Bulldozer' },
     { label: 'Motor Grader', value: 'Motor Grader' }
