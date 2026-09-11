@@ -243,7 +243,7 @@ export default function SalesOrderDashboard() {
       lokasiTujuan: formData.lokasiPengantaran || formData.lokasi,
       picPenerima: formData.picPenerima || 'Belum diisi PIC',
       sales: formData.sales,
-      jenisAlat: formData.jenisAlat,       // <-- TERSIMPAN: jenis alat dari form
+      jenisAlat: formData.jenisAlat,
       jenisSewa: formData.jenisSewa,
       rencanaDurasi: durasiString,
       statusDurasi: 'Sesuai Rencana',
@@ -258,7 +258,7 @@ export default function SalesOrderDashboard() {
       timestampTiba: '-',
       koordinatMuat: '-',
       koordinatTiba: '-',
-      jumlahUnit: Number(formData.jumlahUnit) || 1, // <-- TERSIMPAN: jumlah unit
+      jumlahUnit: Number(formData.jumlahUnit) || 1,
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -405,6 +405,42 @@ export default function SalesOrderDashboard() {
 
   const updateFleetCondition = (unitCode, condition) => {
     setFleetStatus(prev => ({ ...prev, [unitCode]: condition }));
+  };
+
+  // FUNGSI DOWNLOAD EXCEL (CSV FORMAT)
+  const exportToExcel = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "No Order,Customer,Proyek,Sales,Request Alat,Jumlah Unit,Skema,Durasi,Lokasi Awal,Lokasi Tujuan,PIC Penerima,Unit Teralokasi,Operator,HM Awal,Status Logistik,Status Order\n";
+
+    orderList.forEach(order => {
+      const row = [
+        order.id,
+        `"${order.customer}"`,
+        `"${order.namaProyek}"`,
+        order.sales,
+        `"${order.jenisAlat}"`,
+        order.jumlahUnit,
+        order.jenisSewa,
+        `"${order.rencanaDurasi}"`,
+        `"${order.lokasiAwal}"`,
+        `"${order.lokasiTujuan}"`,
+        `"${order.picPenerima}"`,
+        order.kodeUnit,
+        `"${order.namaOperator}"`,
+        `"${order.hmAwal}"`,
+        `"${order.statusLogistik}"`,
+        `"${order.status}"`
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Rekap_Sales_Order_Delta_Perkasa_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const sendWhatsAppNotification = (order) => {
@@ -640,19 +676,29 @@ export default function SalesOrderDashboard() {
               <p className="text-xs text-slate-400">Pantau status unit, operator, HM Awal/BBM, dan evaluasi waktu riil secara real-time</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
-              <span className="text-xs font-bold text-slate-400 px-2">Filter Sales:</span>
-              {['ALL', 'ANS', 'UCI', 'CDP', 'FAN'].map(sal => (
-                <button
-                  key={sal}
-                  onClick={() => setSelectedSalesFilter(sal)}
-                  className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    selectedSalesFilter === sal ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
-                >
-                  {sal}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* TOMBOL DOWNLOAD EXCEL */}
+              <button 
+                onClick={exportToExcel}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <span>📥</span> Download Rekap Excel
+              </button>
+
+              <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
+                <span className="text-xs font-bold text-slate-400 px-2">Filter Sales:</span>
+                {['ALL', 'ANS', 'UCI', 'CDP', 'FAN'].map(sal => (
+                  <button
+                    key={sal}
+                    onClick={() => setSelectedSalesFilter(sal)}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      selectedSalesFilter === sal ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    {sal}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -686,7 +732,7 @@ export default function SalesOrderDashboard() {
                         <div className="text-xs text-slate-300">{order.namaProyek}</div>
                         <div className="text-[11px] font-mono text-blue-300 underline truncate max-w-xs">{order.lokasiTujuan}</div>
                         
-                        {/* PENTING: KOTAK REQUEST ALAT YANG DITAMBAHKAN */}
+                        {/* KOTAK REQUEST ALAT */}
                         <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/50 rounded-xl shadow-inner">
                           <span className="text-sm">🚜</span>
                           <span className="text-xs font-black text-amber-300">
