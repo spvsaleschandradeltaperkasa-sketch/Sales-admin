@@ -24,7 +24,6 @@ export default function SalesOrderDashboard() {
     'FAN': '6281234567893'  
   };
 
-  // Kontak Khusus Tim Logistik / Driver Angkutan Alat
   const logisticsPhone = '6285165659907';
 
   const operatorDatabase = [
@@ -289,15 +288,14 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `Halo ${order.sales}, Update Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Kondisi Waktu: *${order.statusDurasi}* | Status: *${order.status}*. Terima kasih! - CV Chandra Delta Perkasa`;
+    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Waktu: *${order.statusDurasi}* | Status: *${order.status}*. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
-  // Fungsi Kirim Instruksi Khusus ke Tim Logistik / Driver Tronton via WhatsApp
   const sendLogisticsWhatsApp = (order) => {
-    const message = `Halo Tim Logistik CV Chandra Delta Perkasa 🚚,\n\nAda instruksi mobilisasi / penyiapan alat untuk order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit yang Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus Logistik:* _${order.catatanLogistik}_\n\nMohon segera disiapkan pengangkutannya. Terima kasih!`;
+    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus:* _${order.catatanLogistik}_\n\nMohon segera ditindaklanjuti. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
@@ -343,10 +341,48 @@ export default function SalesOrderDashboard() {
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
       <div className="max-w-6xl w-full space-y-8">
         
+        {/* HEADER BRANDING DENGAN LOGO DELTA PERKASA & VISUAL EXCAVATOR */}
+        <div className="relative bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-amber-500/40 rounded-3xl p-8 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="flex items-center gap-5 z-10">
+            {/* Logo Delta Perkasa */}
+            <div className="w-20 h-20 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-500 flex items-center justify-center shrink-0">
+              <div className="text-center font-black">
+                <div className="text-red-700 text-2xl leading-none">▲</div>
+                <div className="text-[10px] text-blue-900 font-extrabold tracking-tighter mt-0.5">DELTA</div>
+                <div className="text-[8px] text-slate-700 tracking-widest">PERKASA</div>
+              </div>
+            </div>
+
+            <div>
+              <div className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-amber-500/30">
+                Pusat Rental Alat Berat Sulawesi
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-wide">
+                CV CHANDRA DELTA PERKASA
+              </h1>
+              <p className="text-xs text-slate-300 mt-1">
+                Dashboard Operasional, Alokasi Unit, & Koordinasi Logistik Lapangan (Makassar & Sekitarnya)
+              </p>
+            </div>
+          </div>
+
+          {/* Visual Ilustrasi Alat Berat / Excavator Badge */}
+          <div className="z-10 bg-slate-950/80 border border-slate-800 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-inner">
+            <div className="text-3xl">🚜</div>
+            <div>
+              <div className="text-[10px] font-bold text-amber-400 uppercase">Total Armada Ready</div>
+              <div className="text-xl font-black text-white">{fleetDatabase.length} Unit</div>
+              <div className="text-[10px] text-slate-400">Exca 20T, Mini, Vibro, Dozer, Grader</div>
+            </div>
+          </div>
+        </div>
+
         {/* STEP 1: FORM SALES ORDER */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-          <h1 className="text-2xl font-black text-white mb-1">STEP 1: Form Sales Order</h1>
-          <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">CV Chandra Delta Perkasa - Rental Alat Berat Sulawesi</p>
+          <h2 className="text-xl font-black text-white mb-1">STEP 1: Form Penerbitan Sales Order</h2>
+          <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek dan skema sewa alat berat</p>
 
           {notification.show && (
             <div className="mb-6 p-4 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl text-sm font-medium">
@@ -441,12 +477,12 @@ export default function SalesOrderDashboard() {
           </form>
         </div>
 
-        {/* STEP 2 & 3 INTEGRATED: ALOKASI UNIT, OPERATOR, WAKTU & CATATAN LOGISTIK */}
+        {/* STEP 2 & 3: ALOKASI UNIT, OPERATOR, WAKTU & CATATAN LOGISTIK */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2 & 3: Alokasi Lapangan & Instruksi ke Tim Logistik</h2>
-              <p className="text-xs text-slate-400">Tentukan unit, tulis catatan khusus (cth: bawa breaker/solar), lalu kirim ke tim logistik/driver</p>
+              <h2 className="text-xl font-black text-white">STEP 2 & 3: Alokasi Lapangan & Instruksi Logistik</h2>
+              <p className="text-xs text-slate-400">Atur unit, operator, evaluasi waktu cepat/lambat, serta kirim catatan khusus ke tim logistik</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -496,7 +532,7 @@ export default function SalesOrderDashboard() {
                         <div className="mt-1"><span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded">Sales: {order.sales}</span></div>
                       </td>
                       
-                      {/* KOLOM EVALUASI WAKTU */}
+                      {/* EVALUASI WAKTU */}
                       <td className="py-4 px-4 space-y-2">
                         <div className="text-xs text-slate-400">Target: <span className="font-mono text-slate-200 font-bold">{order.rencanaDurasi}</span></div>
                         <select 
@@ -517,7 +553,7 @@ export default function SalesOrderDashboard() {
                         />
                       </td>
                       
-                      {/* KOLOM UNIT & OPERATOR */}
+                      {/* UNIT & OPERATOR */}
                       <td className="py-4 px-4 space-y-2">
                         <div>
                           <select 
@@ -545,7 +581,7 @@ export default function SalesOrderDashboard() {
                         </div>
                       </td>
 
-                      {/* KOLOM CATATAN KHUSUS UNTUK TIM LOGISTIK */}
+                      {/* CATATAN KHUSUS LOGISTIK */}
                       <td className="py-4 px-4 space-y-2">
                         <textarea 
                           rows="2"
@@ -562,7 +598,7 @@ export default function SalesOrderDashboard() {
                         </button>
                       </td>
 
-                      {/* KOLOM STATUS & NOTIFIKASI SALES */}
+                      {/* STATUS & NOTIFIKASI SALES */}
                       <td className="py-4 px-4 space-y-2">
                         <select 
                           value={order.status} 
@@ -589,7 +625,7 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* STEP 4: MONITORING KONDISI ARMADA */}
+        {/* MONITORING KONDISI ARMADA */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
