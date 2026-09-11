@@ -17,7 +17,7 @@ export default function SalesOrderDashboard() {
   const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
   const [fleetSearchQuery, setFleetSearchQuery] = useState('');
 
-  // Refs untuk memicu input kamera tersembunyi
+  // Refs untuk kamera tersembunyi
   const fileInputRef = useRef(null);
   const activeCaptureRef = useRef({ orderId: null, jenis: null });
 
@@ -30,7 +30,6 @@ export default function SalesOrderDashboard() {
 
   const logisticsPhone = '6285165659907';
 
-  // Daftar Armada Tronton Logistik
   const trontonFleet = [
     { code: 'SL01', name: 'Tronton / Trailer SL01' },
     { code: 'SL02', name: 'Tronton / Trailer SL02' },
@@ -203,8 +202,8 @@ export default function SalesOrderDashboard() {
       statusLogistik: '🚚 Dalam Perjalanan (OTW)',
       trontonUnit: 'SL01',
       hmAwal: '1240.5 HM (Solar Full)',
-      fotoMuat: null,
-      fotoTiba: null,
+      fotoMuatUrl: null,
+      fotoTibaUrl: null,
       timestampMuat: '-',
       timestampTiba: '-',
       koordinatMuat: '-',
@@ -247,8 +246,8 @@ export default function SalesOrderDashboard() {
       statusLogistik: '⏳ Menunggu Jadwal Muat',
       trontonUnit: 'SL01',
       hmAwal: 'Belum diisi',
-      fotoMuat: null,
-      fotoTiba: null,
+      fotoMuatUrl: null,
+      fotoTibaUrl: null,
       timestampMuat: '-',
       timestampTiba: '-',
       koordinatMuat: '-',
@@ -342,7 +341,7 @@ export default function SalesOrderDashboard() {
     ));
   };
 
-  // Fungsi Pemicu Kamera HP Langsung
+  // Fungsi Pemicu Kamera HP
   const triggerCamera = (id, jenis) => {
     activeCaptureRef.current = { orderId: id, jenis: jenis };
     if (fileInputRef.current) {
@@ -350,16 +349,16 @@ export default function SalesOrderDashboard() {
     }
   };
 
-  // Handler ketika foto selesai diambil dari kamera / galeri
+  // Handler Tangkap Foto & Preview Gambar
   const handleFileCaptured = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const imageUrl = URL.createObjectURL(file);
     const { orderId, jenis } = activeCaptureRef.current;
     const now = new Date();
     const timeString = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
 
-    // Rekam Koordinat GPS
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -370,32 +369,29 @@ export default function SalesOrderDashboard() {
           setOrderList(orderList.map(order => {
             if (order.id === orderId) {
               if (jenis === 'muat') {
-                return { ...order, fotoMuat: file.name, timestampMuat: timeString, koordinatMuat: koordinatStr };
+                return { ...order, fotoMuatUrl: imageUrl, timestampMuat: timeString, koordinatMuat: koordinatStr };
               } else {
-                return { ...order, fotoTiba: file.name, timestampTiba: timeString, koordinatTiba: koordinatStr };
+                return { ...order, fotoTibaUrl: imageUrl, timestampTiba: timeString, koordinatTiba: koordinatStr };
               }
             }
             return order;
           }));
-          alert(`Foto berhasil diambil!\nWaktu: ${timeString}\nGPS: ${koordinatStr}`);
         },
         () => {
           const koordinatStr = '-5.14766, 119.43273 (Makassar Area)';
           setOrderList(orderList.map(order => {
             if (order.id === orderId) {
               if (jenis === 'muat') {
-                return { ...order, fotoMuat: file.name, timestampMuat: timeString, koordinatMuat: koordinatStr };
+                return { ...order, fotoMuatUrl: imageUrl, timestampMuat: timeString, koordinatMuat: koordinatStr };
               } else {
-                return { ...order, fotoTiba: file.name, timestampTiba: timeString, koordinatTiba: koordinatStr };
+                return { ...order, fotoTibaUrl: imageUrl, timestampTiba: timeString, koordinatTiba: koordinatStr };
               }
             }
             return order;
           }));
-          alert(`Foto berhasil diambil!\nWaktu: ${timeString}\n(GPS otomatis tersimpan).`);
         }
       );
     }
-    // Reset file input
     e.target.value = null;
   };
 
@@ -465,7 +461,7 @@ export default function SalesOrderDashboard() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
       
-      {/* Hidden File Input untuk Memicu Kamera HP Langsung */}
+      {/* Hidden File Input untuk Kamera */}
       <input 
         type="file" 
         accept="image/*" 
@@ -477,12 +473,11 @@ export default function SalesOrderDashboard() {
 
       <div className="max-w-6xl w-full space-y-8">
         
-        {/* HEADER BRANDING DENGAN LOGO DELTA PERKASA & VISUAL EXCAVATOR */}
+        {/* HEADER BRANDING */}
         <div className="relative bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-amber-500/40 rounded-3xl p-8 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div className="flex items-center gap-5 z-10">
-            {/* Logo Delta Perkasa */}
             <div className="w-20 h-20 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-500 flex items-center justify-center shrink-0">
               <div className="text-center font-black">
                 <div className="text-red-700 text-2xl leading-none">▲</div>
@@ -504,7 +499,6 @@ export default function SalesOrderDashboard() {
             </div>
           </div>
 
-          {/* Visual Ilustrasi Alat Berat / Excavator Badge */}
           <div className="z-10 bg-slate-950/80 border border-slate-800 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-inner">
             <div className="text-3xl">🚜</div>
             <div>
@@ -565,24 +559,11 @@ export default function SalesOrderDashboard() {
               <div className="md:col-span-2 grid grid-cols-2 gap-2 bg-slate-950 p-2 border border-slate-800 rounded-xl">
                 <div>
                   <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Estimasi Jumlah</label>
-                  <input 
-                    type="number" 
-                    name="jumlahDurasi" 
-                    min="1" 
-                    value={formData.jumlahDurasi} 
-                    onChange={handleChange} 
-                    required 
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold" 
-                  />
+                  <input type="number" name="jumlahDurasi" min="1" value={formData.jumlahDurasi} onChange={handleChange} required className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Satuan Rencana</label>
-                  <select 
-                    name="tipeDurasi" 
-                    value={formData.tipeDurasi} 
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-teal-300 font-bold text-sm focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer"
-                  >
+                  <select name="tipeDurasi" value={formData.tipeDurasi} onChange={handleChange} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-teal-300 font-bold text-sm focus:ring-2 focus:ring-teal-500 outline-none cursor-pointer">
                     <option value="Jam">Jam</option>
                     <option value="Hari">Hari</option>
                     <option value="Minggu">Minggu</option>
@@ -628,9 +609,7 @@ export default function SalesOrderDashboard() {
                   key={sal}
                   onClick={() => setSelectedSalesFilter(sal)}
                   className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    selectedSalesFilter === sal 
-                      ? 'bg-blue-600 text-white shadow' 
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    selectedSalesFilter === sal ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white hover:bg-slate-800'
                   }`}
                 >
                   {sal}
@@ -668,35 +647,19 @@ export default function SalesOrderDashboard() {
                         <div className="mt-1"><span className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold rounded">Sales: {order.sales}</span></div>
                       </td>
                       
-                      {/* EVALUASI WAKTU */}
                       <td className="py-4 px-4 space-y-2">
                         <div className="text-xs text-slate-400">Target: <span className="font-mono text-slate-200 font-bold">{order.rencanaDurasi}</span></div>
-                        <select 
-                          value={order.statusDurasi} 
-                          onChange={(e) => updateStatusDurasi(order.id, e.target.value)}
-                          className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-teal-600/60 text-teal-300 rounded-lg outline-none cursor-pointer"
-                        >
+                        <select value={order.statusDurasi} onChange={(e) => updateStatusDurasi(order.id, e.target.value)} className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-teal-600/60 text-teal-300 rounded-lg outline-none cursor-pointer">
                           <option value="Sesuai Rencana">🟢 Sesuai Rencana</option>
                           <option value="Selesai Lebih Cepat">⚡ Selesai Lebih Cepat</option>
                           <option value="Extend / Perpanjangan">⏱️ Extend / Perpanjangan</option>
                         </select>
-                        <input 
-                          type="text" 
-                          value={order.catatanAktual} 
-                          onChange={(e) => updateCatatanAktual(order.id, e.target.value)}
-                          placeholder="Catatan waktu..."
-                          className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none"
-                        />
+                        <input type="text" value={order.catatanAktual} onChange={(e) => updateCatatanAktual(order.id, e.target.value)} placeholder="Catatan waktu..." className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none" />
                       </td>
                       
-                      {/* UNIT, OPERATOR & HM AWAL / BBM */}
                       <td className="py-4 px-4 space-y-2">
                         <div>
-                          <select 
-                            value={order.kodeUnit} 
-                            onChange={(e) => updateKodeUnit(order.id, e.target.value)}
-                            className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer"
-                          >
+                          <select value={order.kodeUnit} onChange={(e) => updateKodeUnit(order.id, e.target.value)} className="w-full text-xs font-mono font-bold px-3 py-1.5 bg-slate-950 border border-amber-600/60 text-amber-300 rounded-lg outline-none cursor-pointer">
                             <option value="Belum Dipilih">-- Pilih Unit --</option>
                             {fleetDatabase.map((unit) => (
                               <option key={unit.code} value={unit.code}>{unit.code} ({unit.class})</option>
@@ -704,11 +667,7 @@ export default function SalesOrderDashboard() {
                           </select>
                         </div>
                         <div>
-                          <select 
-                            value={order.namaOperator} 
-                            onChange={(e) => updateOperator(order.id, e.target.value)}
-                            className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-emerald-600/60 text-emerald-300 rounded-lg outline-none cursor-pointer"
-                          >
+                          <select value={order.namaOperator} onChange={(e) => updateOperator(order.id, e.target.value)} className="w-full text-xs font-bold px-3 py-1.5 bg-slate-950 border border-emerald-600/60 text-emerald-300 rounded-lg outline-none cursor-pointer">
                             <option value="Belum Ditentukan">-- Pilih Operator --</option>
                             {operatorDatabase.map((opName) => (
                               <option key={opName} value={opName}>{opName}</option>
@@ -716,49 +675,24 @@ export default function SalesOrderDashboard() {
                           </select>
                         </div>
                         <div>
-                          <input 
-                            type="text" 
-                            value={order.hmAwal} 
-                            onChange={(e) => updateHmAwal(order.id, e.target.value)}
-                            placeholder="Input HM Awal / Kondisi BBM..."
-                            className="w-full text-xs font-mono px-3 py-1.5 bg-slate-950 border border-teal-500/50 text-teal-200 rounded-lg outline-none"
-                          />
+                          <input type="text" value={order.hmAwal} onChange={(e) => updateHmAwal(order.id, e.target.value)} placeholder="Input HM Awal / Kondisi BBM..." className="w-full text-xs font-mono px-3 py-1.5 bg-slate-950 border border-teal-500/50 text-teal-200 rounded-lg outline-none" />
                         </div>
                       </td>
 
-                      {/* CATATAN KHUSUS LOGISTIK */}
                       <td className="py-4 px-4 space-y-2">
-                        <textarea 
-                          rows="2"
-                          value={order.catatanLogistik}
-                          onChange={(e) => updateCatatanLogistik(order.id, e.target.value)}
-                          placeholder="Contoh: Bawa breaker di bawah, siapkan selang tambahan..."
-                          className="w-full text-xs font-mono p-2 bg-slate-950 border border-purple-600/50 text-purple-200 rounded-lg outline-none focus:ring-1 focus:ring-purple-500"
-                        />
-                        <button 
-                          onClick={() => sendLogisticsWhatsApp(order)}
-                          className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
-                        >
+                        <textarea rows="2" value={order.catatanLogistik} onChange={(e) => updateCatatanLogistik(order.id, e.target.value)} placeholder="Contoh: Bawa breaker di bawah..." className="w-full text-xs font-mono p-2 bg-slate-950 border border-purple-600/50 text-purple-200 rounded-lg outline-none" />
+                        <button onClick={() => sendLogisticsWhatsApp(order)} className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer">
                           🚚 Kirim Catatan ke Logistik WA
                         </button>
                       </td>
 
-                      {/* STATUS & NOTIFIKASI SALES */}
                       <td className="py-4 px-4 space-y-2">
-                        <select 
-                          value={order.status} 
-                          onChange={(e) => updateStatus(order.id, e.target.value)}
-                          className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 outline-none cursor-pointer"
-                        >
+                        <select value={order.status} onChange={(e) => updateStatus(order.id, e.target.value)} className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 outline-none cursor-pointer">
                           <option value="Menunggu Alokasi Unit">⏳ Menunggu Alokasi</option>
                           <option value="Unit Ready / Dispatched">🚀 Dispatched / Dikirim</option>
                           <option value="Selesai / Close">✅ Selesai / Close</option>
                         </select>
-
-                        <button 
-                          onClick={() => sendWhatsAppNotification(order)}
-                          className="w-full py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
-                        >
+                        <button onClick={() => sendWhatsAppNotification(order)} className="w-full py-1.5 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer">
                           💬 Info Sales ({order.sales})
                         </button>
                       </td>
@@ -777,30 +711,13 @@ export default function SalesOrderDashboard() {
               <h2 className="text-xl font-black text-white">Monitoring Kondisi Fisik Armada</h2>
               <p className="text-xs text-slate-400">Total {fleetDatabase.length} unit terdaftar. Kelola status real-time</p>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <input 
-                type="text" 
-                placeholder="Cari kode unit (cth: EXC.08)..." 
-                value={fleetSearchQuery}
-                onChange={(e) => setFleetSearchQuery(e.target.value)}
-                className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none w-full md:w-56"
-              />
-            </div>
+            <input type="text" placeholder="Cari kode unit (cth: EXC.08)..." value={fleetSearchQuery} onChange={(e) => setFleetSearchQuery(e.target.value)} className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none w-full md:w-56" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-2 border border-slate-800 rounded-2xl mb-6">
             <span className="text-xs font-bold text-slate-400 px-2">Filter Kelas:</span>
             {uniqueClasses.map((cls) => (
-              <button
-                key={cls}
-                onClick={() => setSelectedFleetFilter(cls)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                  selectedFleetFilter === cls 
-                    ? 'bg-amber-600 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
+              <button key={cls} onClick={() => setSelectedFleetFilter(cls)} className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer whitespace-nowrap ${selectedFleetFilter === cls ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
                 {cls}
               </button>
             ))}
@@ -817,50 +734,30 @@ export default function SalesOrderDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
-                {filteredFleet.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="py-8 text-center text-slate-500 text-sm">
-                      Tidak ditemukan unit dengan kata kunci "{fleetSearchQuery}"
-                    </td>
-                  </tr>
-                ) : (
-                  filteredFleet.map((item, index) => {
-                    const currentCondition = fleetStatus[item.code] || 'Ready';
-                    return (
-                      <tr key={item.code} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="py-3 px-4 font-mono text-xs text-slate-500">{index + 1}</td>
-                        <td className="py-3 px-4 font-mono font-bold text-white">{item.code}</td>
-                        <td className="py-3 px-4 text-xs font-semibold text-amber-400">{item.class}</td>
-                        <td className="py-3 px-4 text-center">
-                          <select
-                            value={currentCondition}
-                            onChange={(e) => updateFleetCondition(item.code, e.target.value)}
-                            className={`text-xs font-bold px-3 py-1.5 rounded-xl border outline-none cursor-pointer transition-all ${
-                              currentCondition === 'Ready' 
-                                ? 'bg-emerald-950/65 border-emerald-500 text-emerald-300' 
-                                : currentCondition === 'Working' 
-                                ? 'bg-blue-950/60 border-blue-500 text-blue-300' 
-                                : currentCondition === 'Standby' 
-                                ? 'bg-teal-950/60 border-teal-500 text-teal-300' 
-                                : 'bg-rose-950/60 border-rose-500 text-rose-300 animate-pulse'
-                            }`}
-                          >
-                            <option value="Ready">🟢 Ready</option>
-                            <option value="Standby">🟡 Standby</option>
-                            <option value="Working">🔵 Working</option>
-                            <option value="Breakdown">⚠️ Breakdown</option>
-                          </select>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                {filteredFleet.map((item, index) => {
+                  const currentCondition = fleetStatus[item.code] || 'Ready';
+                  return (
+                    <tr key={item.code} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-3 px-4 font-mono text-xs text-slate-500">{index + 1}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-white">{item.code}</td>
+                      <td className="py-3 px-4 text-xs font-semibold text-amber-400">{item.class}</td>
+                      <td className="py-3 px-4 text-center">
+                        <select value={currentCondition} onChange={(e) => updateFleetCondition(item.code, e.target.value)} className={`text-xs font-bold px-3 py-1.5 rounded-xl border outline-none cursor-pointer transition-all ${currentCondition === 'Ready' ? 'bg-emerald-950/65 border-emerald-500 text-emerald-300' : currentCondition === 'Working' ? 'bg-blue-950/60 border-blue-500 text-blue-300' : currentCondition === 'Standby' ? 'bg-teal-950/60 border-teal-500 text-teal-300' : 'bg-rose-950/60 border-rose-500 text-rose-300 animate-pulse'}`}>
+                          <option value="Ready">🟢 Ready</option>
+                          <option value="Standby">🟡 Standby</option>
+                          <option value="Working">🔵 Working</option>
+                          <option value="Breakdown">⚠️ Breakdown</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON LENGKAP DENGAN KAMERA LANGSUNG & GPS */}
+        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON DENGAN PREVIEW FOTO */}
         <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
@@ -868,7 +765,7 @@ export default function SalesOrderDashboard() {
                 Dashboard Khusus Driver & Angkutan Tronton (SL01, SL02, SL03, TW02)
               </div>
               <h2 className="text-xl font-black text-white">Panel Pengiriman & Verifikasi Lapangan Logistik</h2>
-              <p className="text-xs text-slate-400">Atur rute (Asal & Tujuan), PIC Penerima, klik kamera untuk foto langsung saat muat & tiba lengkap dengan waktu & titik koordinat GPS</p>
+              <p className="text-xs text-slate-400">Atur rute, PIC, dan ambil foto langsung dari kamera HP. Preview gambar, waktu, serta GPS akan tampil otomatis</p>
             </div>
           </div>
 
@@ -877,10 +774,10 @@ export default function SalesOrderDashboard() {
               <thead>
                 <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
                   <th className="py-3 px-4">No. Order</th>
-                  <th className="py-3 px-4 text-amber-400">Unit & Tronton (SL01-TW02)</th>
+                  <th className="py-3 px-4 text-amber-400">Unit & Tronton</th>
                   <th className="py-3 px-4 text-teal-300">Rute & PIC Penerima</th>
-                  <th className="py-3 px-4 text-purple-300">Kamera & GPS Saat Muat</th>
-                  <th className="py-3 px-4 text-purple-300">Kamera & GPS Tiba di Lokasi</th>
+                  <th className="py-3 px-4 text-purple-300">Foto & GPS Saat Muat</th>
+                  <th className="py-3 px-4 text-purple-300">Foto & GPS Tiba di Lokasi</th>
                   <th className="py-3 px-4 text-center">Status & Aksi WA ke Sales</th>
                 </tr>
               </thead>
@@ -889,108 +786,78 @@ export default function SalesOrderDashboard() {
                   <tr key={'log-' + order.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="py-4 px-4 font-mono font-bold text-purple-400">{order.id}</td>
                     
-                    {/* UNIT & TRONTON */}
                     <td className="py-4 px-4 space-y-1">
                       <div className="font-mono font-bold text-amber-300 text-xs">Alat: {order.kodeUnit}</div>
                       <div className="text-[10px] text-slate-300">HM/BBM: {order.hmAwal}</div>
-                      <select
-                        value={order.trontonUnit || 'SL01'}
-                        onChange={(e) => updateTrontonUnit(order.id, e.target.value)}
-                        className="w-full text-xs font-mono font-bold px-2 py-1 bg-slate-950 border border-purple-500/60 text-purple-300 rounded-lg outline-none cursor-pointer mt-1"
-                      >
+                      <select value={order.trontonUnit || 'SL01'} onChange={(e) => updateTrontonUnit(order.id, e.target.value)} className="w-full text-xs font-mono font-bold px-2 py-1 bg-slate-950 border border-purple-500/60 text-purple-300 rounded-lg outline-none cursor-pointer mt-1">
                         {trontonFleet.map((t) => (
                           <option key={t.code} value={t.code}>{t.name}</option>
                         ))}
                       </select>
                     </td>
 
-                    {/* RUTE & PIC PENERIMA */}
                     <td className="py-4 px-4 space-y-2">
                       <div>
                         <span className="text-[10px] text-slate-400 block font-bold">Lokasi Awal:</span>
-                        <input 
-                          type="text" 
-                          value={order.lokasiAwal} 
-                          onChange={(e) => updateLokasiAwal(order.id, e.target.value)}
-                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none"
-                        />
+                        <input type="text" value={order.lokasiAwal} onChange={(e) => updateLokasiAwal(order.id, e.target.value)} className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none" />
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 block font-bold">Lokasi Tujuan:</span>
-                        <input 
-                          type="text" 
-                          value={order.lokasiTujuan} 
-                          onChange={(e) => updateLokasiTujuan(order.id, e.target.value)}
-                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none"
-                        />
+                        <input type="text" value={order.lokasiTujuan} onChange={(e) => updateLokasiTujuan(order.id, e.target.value)} className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-slate-700 text-slate-200 rounded-lg outline-none" />
                       </div>
                       <div>
                         <span className="text-[10px] text-amber-400 block font-bold">PIC Penerima Unit:</span>
-                        <input 
-                          type="text" 
-                          value={order.picPenerima} 
-                          onChange={(e) => updatePicPenerima(order.id, e.target.value)}
-                          placeholder="Nama & No HP PIC..."
-                          className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-amber-600/50 text-amber-200 rounded-lg outline-none"
-                        />
+                        <input type="text" value={order.picPenerima} onChange={(e) => updatePicPenerima(order.id, e.target.value)} placeholder="Nama & No HP PIC..." className="w-full text-xs font-mono px-2 py-1 bg-slate-950 border border-amber-600/50 text-amber-200 rounded-lg outline-none" />
                       </div>
                     </td>
 
-                    {/* FOTO & GPS SAAT MUAT */}
+                    {/* FOTO & PREVIEW SAAT MUAT */}
                     <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
                       <div className="text-[11px] font-bold text-purple-300">1️⃣ Saat Muat di Pool:</div>
-                      <button 
-                        onClick={() => triggerCamera(order.id, 'muat')}
-                        className="w-full py-1.5 px-3 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
-                      >
-                        📷 Buka Kamera Muat + GPS
-                      </button>
+                      {order.fotoMuatUrl ? (
+                        <div className="space-y-1">
+                          <img src={order.fotoMuatUrl} alt="Foto Muat" className="w-full h-24 object-cover rounded-lg border border-purple-500/50" />
+                          <button onClick={() => triggerCamera(order.id, 'muat')} className="text-[10px] text-amber-400 underline w-full text-center block cursor-pointer font-bold">Ganti Foto</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => triggerCamera(order.id, 'muat')} className="w-full py-2 px-3 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer">
+                          📷 Ambil Foto Muat + GPS
+                        </button>
+                      )}
                       <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
-                        <div>File: <span className="text-emerald-400">{order.fotoMuat || 'Belum Ada'}</span></div>
                         <div>Waktu: <span className="text-teal-300">{order.timestampMuat}</span></div>
                         <div>GPS: <span className="text-amber-300">{order.koordinatMuat}</span></div>
                       </div>
                     </td>
 
-                    {/* FOTO & GPS SAAT TIBA */}
+                    {/* FOTO & PREVIEW SAAT TIBA */}
                     <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
                       <div className="text-[11px] font-bold text-purple-300">2️⃣ Tiba di Lokasi Proyek:</div>
-                      <button 
-                        onClick={() => triggerCamera(order.id, 'tiba')}
-                        className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
-                      >
-                        📷 Buka Kamera Tiba + GPS
-                      </button>
+                      {order.fotoTibaUrl ? (
+                        <div className="space-y-1">
+                          <img src={order.fotoTibaUrl} alt="Foto Tiba" className="w-full h-24 object-cover rounded-lg border border-purple-500/50" />
+                          <button onClick={() => triggerCamera(order.id, 'tiba')} className="text-[10px] text-amber-400 underline w-full text-center block cursor-pointer font-bold">Ganti Foto</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => triggerCamera(order.id, 'tiba')} className="w-full py-2 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer">
+                          📷 Ambil Foto Tiba + GPS
+                        </button>
+                      )}
                       <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
-                        <div>File: <span className="text-emerald-400">{order.fotoTiba || 'Belum Ada'}</span></div>
                         <div>Waktu: <span className="text-teal-300">{order.timestampTiba}</span></div>
                         <div>GPS: <span className="text-amber-300">{order.koordinatTiba}</span></div>
                       </div>
                     </td>
 
-                    {/* STATUS & AKSI WA */}
                     <td className="py-4 px-4 space-y-2 text-center">
-                      <select
-                        value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'}
-                        onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
-                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all w-full ${
-                          order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' 
-                            ? 'bg-blue-950 border-blue-500 text-blue-300' 
-                            : order.statusLogistik === '✅ Tiba di Lokasi Proyek' 
-                            ? 'bg-emerald-950 border-emerald-500 text-emerald-300' 
-                            : 'bg-slate-950 border-slate-700 text-slate-300'
-                        }`}
-                      >
+                      <select value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'} onChange={(e) => updateStatusLogistik(order.id, e.target.value)} className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all w-full ${order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' ? 'bg-blue-950 border-blue-500 text-blue-300' : order.statusLogistik === '✅ Tiba di Lokasi Proyek' ? 'bg-emerald-950 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-700 text-slate-300'}`}>
                         <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Muat</option>
                         <option value="🚚 Dalam Perjalanan (OTW)">🚚 OTW ke Proyek</option>
                         <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi</option>
                       </select>
 
-                      <button 
-                        onClick={() => sendLogisticsUpdateToSales(order)}
-                        className="py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer w-full"
-                      >
-                        💬 Kirim Laporan Lengkap ke WA Sales ({order.sales})
+                      <button onClick={() => sendLogisticsUpdateToSales(order)} className="py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer w-full">
+                        💬 Kirim Laporan ke WA Sales ({order.sales})
                       </button>
                     </td>
                   </tr>
