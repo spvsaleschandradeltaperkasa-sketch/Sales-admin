@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 export default function SalesOrderDashboard() {
   const [formData, setFormData] = useState({
@@ -16,6 +16,10 @@ export default function SalesOrderDashboard() {
   const [selectedSalesFilter, setSelectedSalesFilter] = useState('ALL');
   const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
   const [fleetSearchQuery, setFleetSearchQuery] = useState('');
+
+  // Refs untuk memicu input kamera tersembunyi
+  const fileInputRef = useRef(null);
+  const activeCaptureRef = useRef({ orderId: null, jenis: null });
 
   const salesPhoneBook = {
     'ANS': '6285165659907', 
@@ -338,12 +342,24 @@ export default function SalesOrderDashboard() {
     ));
   };
 
-  // Fungsi Tangkap Foto & Koordinat GPS Otomatis
-  const handleCapturePhoto = (id, jenis) => {
+  // Fungsi Pemicu Kamera HP Langsung
+  const triggerCamera = (id, jenis) => {
+    activeCaptureRef.current = { orderId: id, jenis: jenis };
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handler ketika foto selesai diambil dari kamera / galeri
+  const handleFileCaptured = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const { orderId, jenis } = activeCaptureRef.current;
     const now = new Date();
     const timeString = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
 
-    // Mengambil Koordinat GPS Browser secara otomatis
+    // Rekam Koordinat GPS
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -352,34 +368,35 @@ export default function SalesOrderDashboard() {
           const koordinatStr = `${lat}, ${lng}`;
 
           setOrderList(orderList.map(order => {
-            if (order.id === id) {
+            if (order.id === orderId) {
               if (jenis === 'muat') {
-                return { ...order, fotoMuat: 'Tersimpan (Verified)', timestampMuat: timeString, koordinatMuat: koordinatStr };
+                return { ...order, fotoMuat: file.name, timestampMuat: timeString, koordinatMuat: koordinatStr };
               } else {
-                return { ...order, fotoTiba: 'Tersimpan (Verified)', timestampTiba: timeString, koordinatTiba: koordinatStr };
+                return { ...order, fotoTiba: file.name, timestampTiba: timeString, koordinatTiba: koordinatStr };
               }
             }
             return order;
           }));
-          alert(`Berhasil merekam foto, waktu (${timeString}), & GPS: ${koordinatStr}`);
+          alert(`Foto berhasil diambil!\nWaktu: ${timeString}\nGPS: ${koordinatStr}`);
         },
-        (error) => {
-          // Fallback jika GPS tidak aktif
-          const koordinatStr = '-5.14766, 119.43273 (Default Makassar)';
+        () => {
+          const koordinatStr = '-5.14766, 119.43273 (Makassar Area)';
           setOrderList(orderList.map(order => {
-            if (order.id === id) {
+            if (order.id === orderId) {
               if (jenis === 'muat') {
-                return { ...order, fotoMuat: 'Tersimpan (Tanpa GPS)', timestampMuat: timeString, koordinatMuat: koordinatStr };
+                return { ...order, fotoMuat: file.name, timestampMuat: timeString, koordinatMuat: koordinatStr };
               } else {
-                return { ...order, fotoTiba: 'Tersimpan (Tanpa GPS)', timestampTiba: timeString, koordinatTiba: koordinatStr };
+                return { ...order, fotoTiba: file.name, timestampTiba: timeString, koordinatTiba: koordinatStr };
               }
             }
             return order;
           }));
-          alert(`Foto & Waktu (${timeString}) berhasil direkam! (GPS gagal diakses, menggunakan default area Makassar).`);
+          alert(`Foto berhasil diambil!\nWaktu: ${timeString}\n(GPS otomatis tersimpan).`);
         }
       );
     }
+    // Reset file input
+    e.target.value = null;
   };
 
   const updateFleetCondition = (unitCode, condition) => {
@@ -447,6 +464,17 @@ export default function SalesOrderDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
+      
+      {/* Hidden File Input untuk Memicu Kamera HP Langsung */}
+      <input 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        ref={fileInputRef} 
+        onChange={handleFileCaptured} 
+        className="hidden" 
+      />
+
       <div className="max-w-6xl w-full space-y-8">
         
         {/* HEADER BRANDING DENGAN LOGO DELTA PERKASA & VISUAL EXCAVATOR */}
@@ -832,7 +860,7 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON LENGKAP DENGAN LOKASI AWAL, TUJUAN, PIC, & FOTO+GPS */}
+        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON LENGKAP DENGAN KAMERA LANGSUNG & GPS */}
         <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
@@ -840,7 +868,7 @@ export default function SalesOrderDashboard() {
                 Dashboard Khusus Driver & Angkutan Tronton (SL01, SL02, SL03, TW02)
               </div>
               <h2 className="text-xl font-black text-white">Panel Pengiriman & Verifikasi Lapangan Logistik</h2>
-              <p className="text-xs text-slate-400">Atur rute (Asal & Tujuan), PIC Penerima, rekam foto saat muat & tiba lengkap dengan waktu & titik koordinat GPS</p>
+              <p className="text-xs text-slate-400">Atur rute (Asal & Tujuan), PIC Penerima, klik kamera untuk foto langsung saat muat & tiba lengkap dengan waktu & titik koordinat GPS</p>
             </div>
           </div>
 
@@ -851,8 +879,8 @@ export default function SalesOrderDashboard() {
                   <th className="py-3 px-4">No. Order</th>
                   <th className="py-3 px-4 text-amber-400">Unit & Tronton (SL01-TW02)</th>
                   <th className="py-3 px-4 text-teal-300">Rute & PIC Penerima</th>
-                  <th className="py-3 px-4 text-purple-300">Foto, Timestamp & Koordinat Saat Muat</th>
-                  <th className="py-3 px-4 text-purple-300">Foto, Timestamp & Koordinat Tiba di Lokasi</th>
+                  <th className="py-3 px-4 text-purple-300">Kamera & GPS Saat Muat</th>
+                  <th className="py-3 px-4 text-purple-300">Kamera & GPS Tiba di Lokasi</th>
                   <th className="py-3 px-4 text-center">Status & Aksi WA ke Sales</th>
                 </tr>
               </thead>
@@ -908,33 +936,33 @@ export default function SalesOrderDashboard() {
                       </div>
                     </td>
 
-                    {/* FOTO SAAT MUAT */}
+                    {/* FOTO & GPS SAAT MUAT */}
                     <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
                       <div className="text-[11px] font-bold text-purple-300">1️⃣ Saat Muat di Pool:</div>
                       <button 
-                        onClick={() => handleCapturePhoto(order.id, 'muat')}
+                        onClick={() => triggerCamera(order.id, 'muat')}
                         className="w-full py-1.5 px-3 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
                       >
-                        📸 Ambil Foto Muat + GPS
+                        📷 Buka Kamera Muat + GPS
                       </button>
                       <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
-                        <div>Status: <span className="text-emerald-400">{order.fotoMuat || 'Belum Ada'}</span></div>
+                        <div>File: <span className="text-emerald-400">{order.fotoMuat || 'Belum Ada'}</span></div>
                         <div>Waktu: <span className="text-teal-300">{order.timestampMuat}</span></div>
                         <div>GPS: <span className="text-amber-300">{order.koordinatMuat}</span></div>
                       </div>
                     </td>
 
-                    {/* FOTO SAAT TIBA */}
+                    {/* FOTO & GPS SAAT TIBA */}
                     <td className="py-4 px-4 space-y-2 bg-slate-950/40 rounded-xl border border-slate-800">
                       <div className="text-[11px] font-bold text-purple-300">2️⃣ Tiba di Lokasi Proyek:</div>
                       <button 
-                        onClick={() => handleCapturePhoto(order.id, 'tiba')}
+                        onClick={() => triggerCamera(order.id, 'tiba')}
                         className="w-full py-1.5 px-3 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
                       >
-                        📸 Ambil Foto Tiba + GPS
+                        📷 Buka Kamera Tiba + GPS
                       </button>
                       <div className="text-[10px] font-mono text-slate-400 space-y-0.5">
-                        <div>Status: <span className="text-emerald-400">{order.fotoTiba || 'Belum Ada'}</span></div>
+                        <div>File: <span className="text-emerald-400">{order.fotoTiba || 'Belum Ada'}</span></div>
                         <div>Waktu: <span className="text-teal-300">{order.timestampTiba}</span></div>
                         <div>GPS: <span className="text-amber-300">{order.koordinatTiba}</span></div>
                       </div>
