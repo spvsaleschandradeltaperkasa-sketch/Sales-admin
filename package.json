@@ -1,41 +1,29 @@
-// Fungsi tambahan untuk export data Sales Order ke format CSV/Excel
-  const exportToExcel = () => {
-    if (orderList.length === 0) {
-      alert("Tidak ada data Sales Order untuk didownload.");
-      return;
-    }
-
-    // Header Kolom CSV
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Tanggal,Nama Sales,Pelanggan,Project/Site,Jenis Alat,Unit Code,HM Awal,Asal Pool,Tujuan Site,PIC Penerima,Tronton,Status Logistik,Status Order\n";
-
-    // Baris Data
-    orderList.forEach(order => {
-      const row = [
-        order.id,
-        `"${order.tanggal || ''}"`,
-        `"${order.sales || ''}"`,
-        `"${order.customer || ''}"`,
-        `"${order.project || ''}"`,
-        `"${order.jenisAlat || ''}"`,
-        `"${order.unitCode || ''}"`,
-        `"${order.hmAwal || ''}"`,
-        `"${order.lokasiAwal || ''}"`,
-        `"${order.lokasiTujuan || ''}"`,
-        `"${order.picPenerima || ''}"`,
-        `"${order.trontonUnit || ''}"`,
-        `"${order.statusLogistik || ''}"`,
-        `"${order.status || ''}"`
-      ];
-      csvContent += row.join(",") + "\n";
-    });
-
-    // Proses Trigger Download File
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Data_Sales_Order_Delta_Perkasa_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+{
+  "name": "sales-admin",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1.0 in chrome version",
+      "last 1.0 in firefox version",
+      "last 1.0 in safari version"
+    ]
+  }
+}
