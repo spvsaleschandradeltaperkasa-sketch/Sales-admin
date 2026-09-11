@@ -26,6 +26,14 @@ export default function SalesOrderDashboard() {
 
   const logisticsPhone = '6285165659907';
 
+  // Daftar Armada Tronton Logistik Sesuai Permintaan
+  const trontonFleet = [
+    { code: 'SL01', name: 'Tronton / Trailer SL01' },
+    { code: 'SL02', name: 'Tronton / Trailer SL02' },
+    { code: 'SL03', name: 'Tronton / Trailer SL03' },
+    { code: 'TW02', name: 'Tronton / Trailer TW02' }
+  ];
+
   const operatorDatabase = [
     'Baharuddin',
     'Saharuddin',
@@ -185,8 +193,10 @@ export default function SalesOrderDashboard() {
       rencanaDurasi: '3 Hari',
       statusDurasi: 'Sesuai Rencana',
       catatanAktual: 'Sedang berjalan di lapangan',
-      catatanLogistik: 'Tolong bawakan attachment Breaker dan selang hidrolik cadangan ke lokasi.',
+      catatanLogistik: 'Tolong bawakan attachment Breaker dan selang hidrolik cadangan.',
       statusLogistik: '🚚 Dalam Perjalanan (OTW)',
+      trontonUnit: 'SL01',
+      hmAwal: '1240.5 HM (Solar Full)',
       jumlahUnit: 1,
       kodeUnit: 'EXC.08',
       namaOperator: 'Baharuddin',
@@ -220,6 +230,8 @@ export default function SalesOrderDashboard() {
       catatanAktual: 'Menunggu alokasi lapangan',
       catatanLogistik: 'Belum ada catatan khusus',
       statusLogistik: '⏳ Menunggu Jadwal Muat',
+      trontonUnit: 'SL01',
+      hmAwal: 'HM Awal & BBM belum diisi',
       kodeUnit: 'Belum Dipilih',
       namaOperator: 'Belum Ditentukan',
       status: 'Menunggu Alokasi Unit'
@@ -278,6 +290,18 @@ export default function SalesOrderDashboard() {
     ));
   };
 
+  const updateHmAwal = (id, newHmAwal) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, hmAwal: newHmAwal } : order
+    ));
+  };
+
+  const updateTrontonUnit = (id, newTronton) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, trontonUnit: newTronton } : order
+    ));
+  };
+
   const updateStatusLogistik = (id, newLogistikStatus) => {
     setOrderList(orderList.map(order => 
       order.id === id ? { ...order, statusLogistik: newLogistikStatus } : order
@@ -296,16 +320,24 @@ export default function SalesOrderDashboard() {
 
   const sendWhatsAppNotification = (order) => {
     const phone = salesPhoneBook[order.sales] || '';
-    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* | Operator: *${order.namaOperator}* | Waktu: *${order.statusDurasi}* | Status: *${order.status}*. Terima kasih!`;
+    const message = `🏗️ *DELTA PERKASA RENTAL* 🏗️\nUpdate Lapangan SO *${order.id}* (${order.customer}) | Unit: *${order.kodeUnit}* (HM Awal: ${order.hmAwal}) | Operator: *${order.namaOperator}* | Status: *${order.status}*. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
   const sendLogisticsWhatsApp = (order) => {
-    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Digeser:* *${order.kodeUnit}*\n- *Catatan Khusus:* _${order.catatanLogistik}_\n- *Status Pengiriman:* ${order.statusLogistik}\n\nMohon segera ditindaklanjuti. Terima kasih!`;
+    const message = `🚚 *CV CHANDRA DELTA PERKASA — LOGISTIK* 🚚\n\nInstruksi Mobilisasi Alat Order *${order.id}*:\n- *Customer:* ${order.customer}\n- *Proyek:* ${order.namaProyek} (${order.lokasi})\n- *Unit Disewa:* *${order.kodeUnit}* (HM Awal/BBM: ${order.hmAwal})\n- *Tronton Pengangkut:* ${order.trontonUnit}\n- *Catatan Khusus:* _${order.catatanLogistik}_\n\nMohon segera ditindaklanjuti. Terima kasih!`;
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/${logisticsPhone}?text=${encodedMessage}`;
+    window.open(waUrl, '_blank');
+  };
+
+  const sendLogisticsUpdateToSales = (order) => {
+    const phone = salesPhoneBook[order.sales] || '';
+    const message = `📢 *INFO LOGISTIK & HM AWAL* 📢\nHalo ${order.sales}, update unit untuk order *${order.id}* (${order.customer}):\n- *Unit:* ${order.kodeUnit}\n- *HM Awal & BBM:* ${order.hmAwal}\n- *Tronton:* ${order.trontonUnit}\n- *Status Pengiriman:* *${order.statusLogistik}*\n\nTerima kasih!`;
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
     window.open(waUrl, '_blank');
   };
 
@@ -490,7 +522,7 @@ export default function SalesOrderDashboard() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h2 className="text-xl font-black text-white">Kontrol Lapangan & Instruksi Logistik Unit</h2>
-              <p className="text-xs text-slate-400">Pantau status unit, operator, evaluasi waktu riil, dan koordinasi pengiriman armada secara real-time</p>
+              <p className="text-xs text-slate-400">Pantau status unit, operator, HM Awal/BBM, dan evaluasi waktu riil secara real-time</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
@@ -518,7 +550,7 @@ export default function SalesOrderDashboard() {
                   <th className="py-3 px-4">No. Order</th>
                   <th className="py-3 px-4">Customer / Proyek</th>
                   <th className="py-3 px-4 text-teal-400">Evaluasi Waktu Riil</th>
-                  <th className="py-3 px-4 text-amber-400">Alokasi Unit & Operator</th>
+                  <th className="py-3 px-4 text-amber-400">Alokasi Unit, Operator & HM Awal/BBM</th>
                   <th className="py-3 px-4 text-purple-400">Catatan Khusus untuk Logistik 🚚</th>
                   <th className="py-3 px-4">Status & Aksi WA</th>
                 </tr>
@@ -561,7 +593,7 @@ export default function SalesOrderDashboard() {
                         />
                       </td>
                       
-                      {/* UNIT & OPERATOR */}
+                      {/* UNIT, OPERATOR & HM AWAL / BBM */}
                       <td className="py-4 px-4 space-y-2">
                         <div>
                           <select 
@@ -586,6 +618,15 @@ export default function SalesOrderDashboard() {
                               <option key={opName} value={opName}>{opName}</option>
                             ))}
                           </select>
+                        </div>
+                        <div>
+                          <input 
+                            type="text" 
+                            value={order.hmAwal} 
+                            onChange={(e) => updateHmAwal(order.id, e.target.value)}
+                            placeholder="Input HM Awal / Kondisi BBM..."
+                            className="w-full text-xs font-mono px-3 py-1.5 bg-slate-950 border border-teal-500/50 text-teal-200 rounded-lg outline-none"
+                          />
                         </div>
                       </td>
 
@@ -628,67 +669,6 @@ export default function SalesOrderDashboard() {
                     </tr>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* PANEL KHUSUS TIM LOGISTIK & PENGIRIMAN ARMADA */}
-        <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <div className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-purple-500/30">
-                Dashboard Khusus Driver & Angkutan Tronton
-              </div>
-              <h2 className="text-xl font-black text-white">Panel Pengiriman & Mobilisasi Logistik</h2>
-              <p className="text-xs text-slate-400">Pantau unit yang harus dimuat, instruksi khusus perlengkapan (breaker/solar), dan status pengiriman ke lokasi</p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">No. Order</th>
-                  <th className="py-3 px-4">Tujuan & Lokasi Proyek</th>
-                  <th className="py-3 px-4 text-amber-400">Unit Digeser</th>
-                  <th className="py-3 px-4 text-purple-300">Instruksi / Catatan Logistik</th>
-                  <th className="py-3 px-4 text-center">Status Pengiriman Logistik</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-sm">
-                {orderList.map((order) => (
-                  <tr key={'log-' + order.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-4 px-4 font-mono font-bold text-purple-400">{order.id}</td>
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-white">{order.customer}</div>
-                      <div className="text-xs text-slate-400">{order.namaProyek} — <span className="text-teal-300 font-semibold">{order.lokasi}</span></div>
-                    </td>
-                    <td className="py-4 px-4 font-mono font-bold text-amber-300">
-                      {order.kodeUnit}
-                    </td>
-                    <td className="py-4 px-4 text-xs font-mono text-purple-200">
-                      {order.catatanLogistik}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <select
-                        value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'}
-                        onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
-                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all ${
-                          order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' 
-                            ? 'bg-blue-950 border-blue-500 text-blue-300' 
-                            : order.statusLogistik === '✅ Tiba di Lokasi Proyek' 
-                            ? 'bg-emerald-950 border-emerald-500 text-emerald-300' 
-                            : 'bg-slate-950 border-slate-700 text-slate-300'
-                        }`}
-                      >
-                        <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Jadwal Muat</option>
-                        <option value="🚚 Dalam Perjalanan (OTW)">🚚 Dalam Perjalanan (OTW)</option>
-                        <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi Proyek</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>
@@ -779,6 +759,85 @@ export default function SalesOrderDashboard() {
                     );
                   })
                 )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* PANEL KHUSUS TIM LOGISTIK & TRONTON (SL01, SL02, SL03, TW02) - POSISI DI BAWAH */}
+        <div className="bg-slate-900 border border-purple-600/40 rounded-3xl p-8 shadow-2xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <div className="inline-block px-3 py-1 bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-purple-500/30">
+                Dashboard Khusus Armada Tronton (SL01, SL02, SL03, TW02)
+              </div>
+              <h2 className="text-xl font-black text-white">Panel Pengiriman & Mobilisasi Logistik Tronton</h2>
+              <p className="text-xs text-slate-400">Pilih unit tronton pengangkut, cek HM Awal & kondisi BBM, serta kelola status pengiriman</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                  <th className="py-3 px-4">No. Order</th>
+                  <th className="py-3 px-4">Tujuan & Lokasi Proyek</th>
+                  <th className="py-3 px-4 text-amber-400">Alat & HM Awal / BBM</th>
+                  <th className="py-3 px-4 text-purple-300">Pilih Tronton Pengangkut</th>
+                  <th className="py-3 px-4 text-center">Status Pengiriman Logistik</th>
+                  <th className="py-3 px-4 text-center">Aksi WA ke Sales</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-sm">
+                {orderList.map((order) => (
+                  <tr key={'log-' + order.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="py-4 px-4 font-mono font-bold text-purple-400">{order.id}</td>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-white">{order.customer}</div>
+                      <div className="text-xs text-slate-400">{order.namaProyek} — <span className="text-teal-300 font-semibold">{order.lokasi}</span></div>
+                    </td>
+                    <td className="py-4 px-4 font-mono text-xs">
+                      <div className="font-bold text-amber-300">{order.kodeUnit}</div>
+                      <div className="text-teal-300 font-semibold mt-0.5">📊 HM/BBM: {order.hmAwal}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <select
+                        value={order.trontonUnit || 'SL01'}
+                        onChange={(e) => updateTrontonUnit(order.id, e.target.value)}
+                        className="w-full text-xs font-mono font-bold px-3 py-2 bg-slate-950 border border-purple-500/60 text-purple-300 rounded-xl outline-none cursor-pointer"
+                      >
+                        {trontonFleet.map((t) => (
+                          <option key={t.code} value={t.code}>{t.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <select
+                        value={order.statusLogistik || '⏳ Menunggu Jadwal Muat'}
+                        onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
+                        className={`text-xs font-bold px-3 py-2 rounded-xl border outline-none cursor-pointer transition-all ${
+                          order.statusLogistik === '🚚 Dalam Perjalanan (OTW)' 
+                            ? 'bg-blue-950 border-blue-500 text-blue-300' 
+                            : order.statusLogistik === '✅ Tiba di Lokasi Proyek' 
+                            ? 'bg-emerald-950 border-emerald-500 text-emerald-300' 
+                            : 'bg-slate-950 border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Jadwal Muat</option>
+                        <option value="🚚 Dalam Perjalanan (OTW)">🚚 Dalam Perjalanan (OTW)</option>
+                        <option value="✅ Tiba di Lokasi Proyek">✅ Tiba di Lokasi Proyek</option>
+                      </select>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <button 
+                        onClick={() => sendLogisticsUpdateToSales(order)}
+                        className="py-2 px-3 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer w-full"
+                      >
+                        💬 WA Sales ({order.sales})
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
