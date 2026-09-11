@@ -29,6 +29,7 @@ export default function SalesOrderDashboard() {
       jenisAlat: 'Exca 20 Ton',
       unitCode: 'EXC.01',
       hmAwal: 'HM: 1.250 / Solar 50%',
+      timesheetPemakaian: 'Jam Kerja: 08:00 - 17:00 (Standard)',
       lokasiAwal: 'Pool Daya Makassar',
       lokasiTujuan: 'Pelabuhan Soekarno Hatta',
       picPenerima: 'Pak Budi (08123456789)',
@@ -56,6 +57,9 @@ export default function SalesOrderDashboard() {
   // Handler Update State Baris Order
   const updateHmAwal = (id, val) => {
     setOrderList(orderList.map(o => o.id === id ? { ...o, hmAwal: val } : o));
+  };
+  const updateTimesheet = (id, val) => {
+    setOrderList(orderList.map(o => o.id === id ? { ...o, timesheetPemakaian: val } : o));
   };
   const updateLokasiAwal = (id, val) => {
     setOrderList(orderList.map(o => o.id === id ? { ...o, lokasiAwal: val } : o));
@@ -108,7 +112,7 @@ export default function SalesOrderDashboard() {
   };
 
   const sendWhatsAppNotification = (order) => {
-    const text = `Halo ${order.sales}, update status order alat berat untuk ${order.customer} (${order.project}): Status saat ini -> ${order.status}.`;
+    const text = `Halo ${order.sales}, update status order alat berat untuk ${order.customer} (${order.project}): Status saat ini -> ${order.status}. Timesheet/HM: ${order.hmAwal}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -120,7 +124,7 @@ export default function SalesOrderDashboard() {
     }
 
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "ID,Tanggal,Nama Sales,Pelanggan,Project/Site,Jenis Alat,Unit Code,HM Awal,Asal Pool,Tujuan Site,PIC Penerima,Tronton,Status Logistik,Status Order\n";
+    csvContent += "ID,Tanggal,Nama Sales,Pelanggan,Project/Site,Jenis Alat,Unit Code,HM Awal,Timesheet,Asal Pool,Tujuan Site,PIC Penerima,Tronton,Status Logistik,Status Order\n";
 
     orderList.forEach(order => {
       const row = [
@@ -132,6 +136,7 @@ export default function SalesOrderDashboard() {
         `"${order.jenisAlat || ''}"`,
         `"${order.unitCode || ''}"`,
         `"${order.hmAwal || ''}"`,
+        `"${order.timesheetPemakaian || ''}"`,
         `"${order.lokasiAwal || ''}"`,
         `"${order.lokasiTujuan || ''}"`,
         `"${order.picPenerima || ''}"`,
@@ -191,7 +196,7 @@ export default function SalesOrderDashboard() {
               <thead>
                 <tr className="bg-slate-950/80 text-[11px] font-bold text-slate-400 border-b border-slate-800">
                   <th className="py-4 px-4">Info Sales & Pelanggan</th>
-                  <th className="py-4 px-4">Alat Berat & Kondisi</th>
+                  <th className="py-4 px-4">Alat Berat & Timesheet/HM</th>
                   <th className="py-4 px-4">Logistik & Tronton Pengangkut</th>
                   <th className="py-4 px-4">Status & Aksi</th>
                 </tr>
@@ -212,18 +217,29 @@ export default function SalesOrderDashboard() {
                         <div className="text-[11px] text-amber-400 font-mono">Sales: {order.sales} ({order.tanggal})</div>
                       </td>
 
-                      {/* Kolom 2: Alat Berat */}
+                      {/* Kolom 2: Alat Berat & Timesheet */}
                       <td className="py-4 px-4 space-y-2 align-top">
                         <div className="font-bold text-teal-300">{order.jenisAlat}</div>
                         <div className="text-xs font-mono bg-slate-950 px-2 py-1 rounded border border-slate-800 inline-block text-slate-300">
                           Unit: {order.unitCode}
                         </div>
-                        <div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-400 font-bold block">HM Awal & BBM:</label>
                           <input 
                             type="text" 
                             value={order.hmAwal} 
                             onChange={(e) => updateHmAwal(order.id, e.target.value)} 
                             placeholder="HM Awal / Kondisi BBM..." 
+                            className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none" 
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-400 font-bold block">Timesheet Pemakaian:</label>
+                          <input 
+                            type="text" 
+                            value={order.timesheetPemakaian} 
+                            onChange={(e) => updateTimesheet(order.id, e.target.value)} 
+                            placeholder="Waktu timesheet / jam kerja..." 
                             className="w-full text-xs font-mono px-3 py-1 bg-slate-950 border border-slate-700 text-slate-300 rounded-lg outline-none" 
                           />
                         </div>
