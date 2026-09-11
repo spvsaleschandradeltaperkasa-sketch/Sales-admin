@@ -379,10 +379,10 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* STEP 1: FORM SALES ORDER */}
+        {/* FORM SALES ORDER */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-          <h2 className="text-xl font-black text-white mb-1">STEP 1: Form Penerbitan Sales Order</h2>
-          <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek dan skema sewa alat berat</p>
+          <h2 className="text-xl font-black text-white mb-1">Formulir Pemesanan Alat Berat (Sales Order)</h2>
+          <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek, lokasi, dan skema sewa dengan lengkap</p>
 
           {notification.show && (
             <div className="mb-6 p-4 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl text-sm font-medium">
@@ -477,12 +477,12 @@ export default function SalesOrderDashboard() {
           </form>
         </div>
 
-        {/* STEP 2 & 3: ALOKASI UNIT, OPERATOR, WAKTU & CATATAN LOGISTIK */}
+        {/* KONTROL LAPANGAN & INSTRUKSI LOGISTIK */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h2 className="text-xl font-black text-white">STEP 2 & 3: Alokasi Lapangan & Instruksi Logistik</h2>
-              <p className="text-xs text-slate-400">Atur unit, operator, evaluasi waktu cepat/lambat, serta kirim catatan khusus ke tim logistik</p>
+              <h2 className="text-xl font-black text-white">Kontrol Lapangan & Instruksi Logistik Unit</h2>
+              <p className="text-xs text-slate-400">Pantau status unit, operator, evaluasi waktu riil, dan koordinasi pengiriman armada secara real-time</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
