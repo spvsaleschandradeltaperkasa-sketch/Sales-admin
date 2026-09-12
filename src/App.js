@@ -95,10 +95,10 @@ export default function SalesOrderDashboard() {
   const logisticsPhone = '6285165659907';
 
   const trontonFleet = [
-    { code: 'SL01', name: 'Tronton / Trailer SL01' },
-    { code: 'SL02', name: 'Tronton / Trailer SL02' },
-    { code: 'SL03', name: 'Tronton / Trailer SL03' },
-    { code: 'TW02', name: 'Tronton / Trailer TW02' }
+    { code: 'SL01', name: 'Tronton SL01' },
+    { code: 'SL02', name: 'Tronton SL02' },
+    { code: 'SL03', name: 'Tronton SL03' },
+    { code: 'TW02', name: 'Tronton TW02' }
   ];
 
   const operatorDatabase = [
@@ -586,7 +586,9 @@ export default function SalesOrderDashboard() {
     { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
     { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
     { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
     { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY75 - Bucket' },
+    { label: 'Excavator Mini SY75 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
     { label: 'Vibro Roller', value: 'Vibro Roller' },
     { label: 'Bulldozer', value: 'Bulldozer' },
     { label: 'Motor Grader', value: 'Motor Grader' }
