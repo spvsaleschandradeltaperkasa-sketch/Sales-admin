@@ -1,4 +1,6 @@
-  // Refs untuk kamera tersembunyi
+import React, { useState, useRef } from "react";
+
+export default function SalesOrder() {
   const fileInputRef = useRef(null);
   const activeCaptureRef = useRef({ orderId: null, jenis: null });
 
@@ -19,18 +21,8 @@
   ];
 
   const operatorDatabase = [
-    'BUSTAM',
-    'ABDUL RAHIM SAPUTRA',
-    'BAHARUDDIN',
-    'SAHARUDDIN',
-    'RUSTAM',
-    'AMIR',
-    'YUSUF',
-    'ARIS',
-    'HERMAN',
-    'DG. SILA',
-    'RAHMAT',
-    'SUPRIADI'
+    'BUSTAM', 'ABDUL RAHIM SAPUTRA', 'BAHARUDDIN', 'SAHARUDDIN',
+    'RUSTAM', 'AMIR', 'YUSUF', 'ARIS', 'HERMAN', 'DG. SILA', 'RAHMAT', 'SUPRIADI'
   ];
 
   const fleetDatabase = [
@@ -167,6 +159,20 @@
     { code: 'VBR.TW.02', class: 'Vibro 10 Ton' }
   ];
 
+  const [formData, setFormData] = useState({
+    customer: '',
+    namaProyek: '',
+    lokasi: '',
+    lokasiPengantaran: '',
+    picPenerima: '',
+    sales: 'ANS',
+    jenisAlat: 'Excavator 20 Ton - Bucket',
+    jenisSewa: 'S1',
+    tipeDurasi: 'Jam',
+    jumlahDurasi: 8,
+    jumlahUnit: 1
+  });
+
   const [orderList, setOrderList] = useState([
     {
       id: 'SO-7208',
@@ -269,3 +275,73 @@
       setNotification({ show: false, message: '' });
     }, 4000);
   };
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-6 text-white bg-slate-950 min-h-screen">
+      {notification.show && (
+        <div className="bg-emerald-900 border border-emerald-500 text-emerald-200 p-4 rounded-xl shadow-lg">
+          {notification.message}
+        </div>
+      )}
+
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        <h2 className="text-xl font-black mb-4 text-blue-400">Form Pembuatan Sales Order</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-1">Nama Customer</label>
+            <input 
+              type="text" 
+              name="customer" 
+              value={formData.customer} 
+              onChange={handleChange} 
+              required
+              placeholder="PT / CV Customer"
+              className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 mb-1">Nama Proyek</label>
+              <input 
+                type="text" 
+                name="namaProyek" 
+                value={formData.namaProyek} 
+                onChange={handleChange} 
+                required
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 mb-1">Lokasi</label>
+              <input 
+                type="text" 
+                name="lokasi" 
+                value={formData.lokasi} 
+                onChange={handleChange} 
+                required
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm"
+              />
+            </div>
+          </div>
+          <button type="submit" className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-black text-sm transition-all shadow-lg">
+            Terbitkan Sales Order
+          </button>
+        </form>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        <h3 className="font-black text-lg mb-4 text-slate-200">Daftar Order Aktif</h3>
+        <div className="space-y-3">
+          {orderList.map(order => (
+            <div key={order.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
+              <div>
+                <span className="text-blue-400 font-bold">{order.id}</span> - <span className="font-semibold">{order.customer}</span> ({order.namaProyek})
+                <div className="text-xs text-slate-400 mt-1">Alat: {order.jenisAlat} | Status: {order.status}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
