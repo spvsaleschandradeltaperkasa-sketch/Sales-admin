@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import SalesOrder from "./domains/sales/SalesOrder";
-import AdminTimesheet from "./domains/Timesheet/AdminTimesheet";
+import AdminTimesheet from "./domains/timesheet/AdminTimesheet";
 import KontrolLapangan from "./domains/operational/KontrolLapangan";
 
 export default function App() {
