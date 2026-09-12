@@ -238,9 +238,9 @@ export default function SalesOrder() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-bold text-amber-400 focus:outline-none focus:border-blue-500 transition-all"
               >
-                <option value="S1">S1 (Dengan Operator & BBM)</option>
-                <option value="S2">S2 (Dengan Operator, Tanpa BBM)</option>
-                <option value="S3">S3 (Lepas Kunci / Unit Saja)</option>
+                <option value="S1">S1 (Dengan Operator & Tanpa BBM)</option>
+                <option value="S2">S2 (Dengan Operator & BBM)</option>
+                <option value="S3">S3 (All In)</option>
               </select>
             </div>
           </div>
