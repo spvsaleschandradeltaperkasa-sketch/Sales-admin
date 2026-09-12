@@ -1,9 +1,7 @@
 import React, { useState, useRef } from 'react';
 
-export default function DeltaPerkasaApp() {
-  // State Navigasi antar Divisi / Link Berbeda
-  // Pilihan: 'dashboard' (Sales), 'timesheet' (Admin Timesheet), 'logistik' (Kepala Operator & Logistik)
-  const [activeTab, setActiveTab] = useState('dashboard');
+export default function SalesOrderDashboard() {
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' atau 'timesheet'
 
   const [formData, setFormData] = useState({
     customer: '',
@@ -91,7 +89,6 @@ export default function DeltaPerkasaApp() {
     'ANS': '6285165659907', 
     'UCI': '6281234567891', 
     'CDP': '6285165659907', 
-    'CDF': '082348222444',
     'FAN': '6281234567893'  
   };
 
@@ -105,8 +102,18 @@ export default function DeltaPerkasaApp() {
   ];
 
   const operatorDatabase = [
-    'BUSTAM', 'ABDUL RAHIM SAPUTRA', 'BAHARUDDIN', 'SAHARUDDIN', 
-    'RUSTAM', 'AMIR', 'YUSUF', 'ARIS', 'HERMAN', 'DG. SILA', 'RAHMAT', 'SUPRIADI'
+    'BUSTAM',
+    'ABDUL RAHIM SAPUTRA',
+    'BAHARUDDIN',
+    'SAHARUDDIN',
+    'RUSTAM',
+    'AMIR',
+    'YUSUF',
+    'ARIS',
+    'HERMAN',
+    'DG. SILA',
+    'RAHMAT',
+    'SUPRIADI'
   ];
 
   const fleetDatabase = [
@@ -346,7 +353,7 @@ export default function DeltaPerkasaApp() {
     }, 4000);
   };
 
-  // Handler Tambah Timesheet Harian
+  // Handler Tambah Timesheet Harian (Sesuai Lampiran Spreadsheet)
   const handleAddTimesheet = (e) => {
     e.preventDefault();
     const hmS = parseFloat(tsForm.hmStart) || 0;
@@ -357,12 +364,33 @@ export default function DeltaPerkasaApp() {
 
     const newTs = {
       id: 'TS-' + Math.floor(1000 + Math.random() * 9000),
-      ...tsForm,
+      kodeGajiOp: tsForm.kodeGajiOp,
+      kodeTagih: tsForm.kodeTagih,
+      jobId: tsForm.jobId,
+      tanggal: tsForm.tanggal,
+      hari: tsForm.hari,
+      operator: tsForm.operator,
+      attach: tsForm.attach,
+      unitCode: tsForm.unitCode,
+      model: tsForm.model,
+      namaPenyewa: tsForm.namaPenyewa,
+      alamat: tsForm.alamat,
+      jobVia: tsForm.jobVia,
+      jamMulai: tsForm.jamMulai,
+      jamSelesai: tsForm.jamSelesai,
+      durasiIstirahat: tsForm.durasiIstirahat,
+      standby: tsForm.standby,
+      totalJamKerja: tsForm.totalJamKerja,
+      hmStart: hmS,
+      hmEnd: hmE,
       totalHm: total,
+      ot: otVal,
       unitWorkingHour: workingHour,
       opWorkingHour: workingHour,
       hariKerjaAlat: total > 0 ? 1.00 : 0.00,
-      keterangan: tsForm.keterangan || '-'
+      pencukupan: tsForm.pencukupan,
+      keterangan: tsForm.keterangan || '-',
+      tipeJam: tsForm.tipeJam
     };
 
     setTimesheetList([newTs, ...timesheetList]);
@@ -370,6 +398,67 @@ export default function DeltaPerkasaApp() {
     setTimeout(() => setNotification({ show: false, message: '' }), 3000);
   };
 
+  const updateKodeUnit = (id, newKodeUnit) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, kodeUnit: newKodeUnit } : order
+    ));
+  };
+
+  const updateOperator = (id, newOperator) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, namaOperator: newOperator } : order
+    ));
+  };
+
+  const updateStatusDurasi = (id, newStatusDurasi) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, statusDurasi: newStatusDurasi } : order
+    ));
+  };
+
+  const updateCatatanAktual = (id, newCatatan) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, catatanAktual: newCatatan } : order
+    ));
+  };
+
+  const updateCatatanLogistik = (id, newLogistikNote) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, catatanLogistik: newLogistikNote } : order
+    ));
+  };
+
+  const updateHmAwal = (id, newHmAwal) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, hmAwal: newHmAwal } : order
+    ));
+  };
+
+  const updateLokasiAwal = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, lokasiAwal: val } : order));
+  };
+
+  const updateLokasiTujuan = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, lokasiTujuan: val } : order));
+  };
+
+  const updatePicPenerima = (id, val) => {
+    setOrderList(orderList.map(order => order.id === id ? { ...order, picPenerima: val } : order));
+  };
+
+  const updateTrontonUnit = (id, newTronton) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, trontonUnit: newTronton } : order
+    ));
+  };
+
+  const updateStatusLogistik = (id, newLogistikStatus) => {
+    setOrderList(orderList.map(order => 
+      order.id === id ? { ...order, statusLogistik: newLogistikStatus } : order
+    ));
+  };
+
+  // Fungsi Pemicu Kamera HP
   const triggerCamera = (id, jenis) => {
     activeCaptureRef.current = { orderId: id, jenis: jenis };
     if (fileInputRef.current) {
@@ -377,6 +466,7 @@ export default function DeltaPerkasaApp() {
     }
   };
 
+  // Handler Tangkap Foto & Preview Gambar
   const handleFileCaptured = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -422,16 +512,33 @@ export default function DeltaPerkasaApp() {
     e.target.value = null;
   };
 
+  const updateFleetCondition = (unitCode, condition) => {
+    setFleetStatus(prev => ({ ...prev, [unitCode]: condition }));
+  };
+
+  // FUNGSI DOWNLOAD EXCEL (CSV FORMAT)
   const exportToExcel = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "No Order,Customer,Proyek,Sales,Request Alat,Jumlah Unit,Skema,Durasi,Lokasi Awal,Lokasi Tujuan,PIC Penerima,Unit Teralokasi,Operator,HM Awal,Status Logistik,Status Order\n";
 
     orderList.forEach(order => {
       const row = [
-        order.id, `"${order.customer}"`, `"${order.namaProyek}"`, order.sales,
-        `"${order.jenisAlat}"`, order.jumlahUnit, order.jenisSewa, `"${order.rencanaDurasi}"`,
-        `"${order.lokasiAwal}"`, `"${order.lokasiTujuan}"`, `"${order.picPenerima}"`,
-        order.kodeUnit, `"${order.namaOperator}"`, `"${order.hmAwal}"`, `"${order.statusLogistik}"`, `"${order.status}"`
+        order.id,
+        `"${order.customer}"`,
+        `"${order.namaProyek}"`,
+        order.sales,
+        `"${order.jenisAlat}"`,
+        order.jumlahUnit,
+        order.jenisSewa,
+        `"${order.rencanaDurasi}"`,
+        `"${order.lokasiAwal}"`,
+        `"${order.lokasiTujuan}"`,
+        `"${order.picPenerima}"`,
+        order.kodeUnit,
+        `"${order.namaOperator}"`,
+        `"${order.hmAwal}"`,
+        `"${order.statusLogistik}"`,
+        `"${order.status}"`
       ];
       csvContent += row.join(",") + "\n";
     });
@@ -460,23 +567,54 @@ export default function DeltaPerkasaApp() {
     window.open(waUrl, '_blank');
   };
 
-  // Helper Simulasi URL Domain per Divisi
-  const getDomainUrl = () => {
-    switch(activeTab) {
-      case 'dashboard': return 'https://app.deltaperkasa.com/sales-order';
-      case 'timesheet': return 'https://app.deltaperkasa.com/admin-timesheet';
-      case 'logistik': return 'https://app.deltaperkasa.com/kepala-operator-logistik';
-      default: return 'https://app.deltaperkasa.com';
-    }
+  const sendLogisticsUpdateToSales = (order) => {
+    const phone = salesPhoneBook[order.sales] || '';
+    const message = `📢 *INFO LOGISTIK LENGKAP* 📢\nHalo ${order.sales}, update pengiriman order *${order.id}* (${order.customer}):\n- *Request Alat:* ${order.jenisAlat} (${order.jumlahUnit} Unit)\n- *Unit:* ${order.kodeUnit} (HM/BBM: ${order.hmAwal})\n- *Tronton:* ${order.trontonUnit}\n- *Rute:* ${order.lokasiAwal} ➡️ ${order.lokasiTujuan}\n- *PIC Penerima:* ${order.picPenerima}\n- *Status:* *${order.statusLogistik}*\n- *Foto Muat:* ${order.timestampMuat} (${order.koordinatMuat})\n- *Foto Tiba:* ${order.timestampTiba} (${order.koordinatTiba})\n\nTerima kasih!`;
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = phone ? `https://wa.me/${phone}?text=${encodedMessage}` : `https://wa.me/?text=${encodedMessage}`;
+    window.open(waUrl, '_blank');
   };
 
-  const salesOptions = [{ label: 'ANS', value: 'ANS' }, { label: 'UCI', value: 'UCI' }, { label: 'CDP', value: 'CDP' }, { label: 'FAN', value: 'FAN' }];
-  const jenisSewaOptions = [{ label: 'S1', value: 'S1' }, { label: 'S2', value: 'S2' }, { label: 'S3', value: 'S3' }];
+  const salesOptions = [
+    { label: 'ANS', value: 'ANS' },
+    { label: 'UCI', value: 'UCI' },
+    { label: 'CDP', value: 'CDP' },
+    { label: 'FAN', value: 'FAN' }
+  ];
 
-  const filteredOrders = selectedSalesFilter === 'ALL' ? orderList : orderList.filter(order => order.sales === selectedSalesFilter);
+  const alatOptions = [
+    { label: 'Excavator 20 Ton - Bucket', value: 'Excavator 20 Ton - Bucket' },
+    { label: 'Excavator 20 Ton - Breaker', value: 'Excavator 20 Ton - Breaker' },
+    { label: 'Excavator Mini SY55 - Bucket', value: 'Excavator Mini SY55 - Bucket' },
+    { label: 'Excavator Mini SY55 - Breaker', value: 'Excavator Mini SY55 - Breaker' },
+    { label: 'Excavator Mini SY75 - Bucket', value: 'Excavator Mini SY75 - Bucket' },
+    { label: 'Excavator Mini SY75 - Breaker', value: 'Excavator Mini SY75 - Breaker' },
+    { label: 'Vibro Roller', value: 'Vibro Roller' },
+    { label: 'Bulldozer', value: 'Bulldozer' },
+    { label: 'Motor Grader', value: 'Motor Grader' }
+  ];
+
+  const jenisSewaOptions = [
+    { label: 'S1', value: 'S1' },
+    { label: 'S2', value: 'S2' },
+    { label: 'S3', value: 'S3' }
+  ];
+
+  const filteredOrders = selectedSalesFilter === 'ALL' 
+    ? orderList 
+    : orderList.filter(order => order.sales === selectedSalesFilter);
+
+  const filteredFleet = fleetDatabase.filter(item => {
+    const matchesClass = selectedFleetFilter === 'ALL' || item.class === selectedFleetFilter;
+    const matchesSearch = item.code.toLowerCase().includes(fleetSearchQuery.toLowerCase()) || 
+                          item.class.toLowerCase().includes(fleetSearchQuery.toLowerCase());
+    return matchesClass && matchesSearch;
+  });
+
+  const uniqueClasses = ['ALL', ...new Set(fleetDatabase.map(item => item.class))];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
       
       {/* Hidden File Input untuk Kamera */}
       <input 
@@ -488,75 +626,61 @@ export default function DeltaPerkasaApp() {
         className="hidden" 
       />
 
-      <div className="max-w-6xl w-full space-y-6">
+      <div className="max-w-6xl w-full space-y-8">
         
         {/* HEADER BRANDING */}
-        <div className="relative bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-amber-500/40 rounded-3xl p-6 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-amber-500/40 rounded-3xl p-8 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
           <div className="flex items-center gap-5 z-10">
-            <div className="w-16 h-16 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-500 flex items-center justify-center shrink-0">
+            <div className="w-20 h-20 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-500 flex items-center justify-center shrink-0">
               <div className="text-center font-black">
-                <div className="text-red-700 text-xl leading-none">▲</div>
-                <div className="text-[9px] text-blue-900 font-extrabold tracking-tighter">DELTA</div>
+                <div className="text-red-700 text-2xl leading-none">▲</div>
+                <div className="text-[10px] text-blue-900 font-extrabold tracking-tighter mt-0.5">DELTA</div>
+                <div className="text-[8px] text-slate-700 tracking-widest">PERKASA</div>
               </div>
             </div>
+
             <div>
-              <span className="px-3 py-0.5 bg-amber-500/20 text-amber-400 font-bold text-[10px] uppercase rounded-full border border-amber-500/30">
-                Sulawesi Region
-              </span>
-              <h1 className="text-xl md:text-2xl font-black text-white tracking-wide mt-1">
+              <div className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 font-bold text-[10px] uppercase rounded-full tracking-widest mb-1 border border-amber-500/30">
+                Pusat Rental Alat Berat Sulawesi
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-wide">
                 CV CHANDRA DELTA PERKASA
               </h1>
-              <p className="text-xs text-slate-300">
-                Sistem Terpadu Manajemen Alat Berat, Sales Order, & Logistik Lapangan
+              <p className="text-xs text-slate-300 mt-1">
+                Dashboard Operasional, Alokasi Unit, & Koordinasi Logistik Lapangan (Makassar & Sekitarnya)
               </p>
             </div>
           </div>
-        </div>
 
-        {/* NAVIGATION TABS / PEMISAH LINK DIVISI */}
-        <div className="bg-slate-900 p-2 border border-slate-800 rounded-2xl flex flex-col md:flex-row gap-2 justify-between items-center">
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              📋 1. Link Sales (Sales Order)
-            </button>
-            <button
-              onClick={() => setActiveTab('timesheet')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                activeTab === 'timesheet' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              ⏱️ 2. Link Admin Timesheet
-            </button>
-            <button
-              onClick={() => setActiveTab('logistik')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                activeTab === 'logistik' ? 'bg-purple-600 text-white shadow-lg' : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              🚚 3. Link Kepala Operator & Logistik
-            </button>
+          <div className="z-10 bg-slate-950/80 border border-slate-800 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-inner">
+            <div className="text-3xl">🚜</div>
+            <div>
+              <div className="text-[10px] font-bold text-amber-400 uppercase">Total Armada Ready</div>
+              <div className="text-xl font-black text-white">{fleetDatabase.length} Unit</div>
+              <div className="text-[10px] text-slate-400">Exca 20T, Mini, Vibro, Dozer, Grader</div>
+            </div>
           </div>
         </div>
 
-        {/* SIMULASI URL DOMAIN BAR AKTIF */}
-        <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs text-slate-300">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <span className="bg-slate-800 text-amber-400 px-2.5 py-1 rounded font-mono text-[11px] font-bold">🔗 Active URL:</span>
-            <span className="font-mono text-slate-200 truncate">{getDomainUrl()}</span>
-          </div>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(getDomainUrl());
-              alert('Link divisi berhasil disalin!');
-            }}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded text-xs font-semibold shrink-0 cursor-pointer border border-slate-700"
+        {/* NAVIGATION TABS (DASHBOARD UTAMA VS ADMIN TIMESHEET) */}
+        <div className="flex bg-slate-900 p-1.5 border border-slate-800 rounded-2xl w-fit">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+              activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
           >
-            Salin Link 📋
+            📋 Sales Order & Alokasi
+          </button>
+          <button
+            onClick={() => setActiveTab('timesheet')}
+            className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+              activeTab === 'timesheet' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            ⏱️ Admin Timesheet Harian
           </button>
         </div>
 
@@ -566,12 +690,13 @@ export default function DeltaPerkasaApp() {
           </div>
         )}
 
-        {/* ================= DIVISI 1: SALES ORDER & DASHBOARD ================= */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-              <h2 className="text-lg font-black text-white mb-1">Formulir Pemesanan Alat Berat (Sales Order)</h2>
-              <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek, lokasi pengantaran, dan skema sewa</p>
+        {/* KONTEN BERDASARKAN TAB AKTIF */}
+        {activeTab === 'dashboard' ? (
+          <>
+            {/* FORM SALES ORDER */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+              <h2 className="text-xl font-black text-white mb-1">Formulir Pemesanan Alat Berat (Sales Order)</h2>
+              <p className="text-xs text-blue-400 mb-6 uppercase tracking-wider font-bold">Masukkan data proyek, lokasi pengantaran, dan skema sewa dengan lengkap</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -592,180 +717,485 @@ export default function DeltaPerkasaApp() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-950/60 border border-purple-900/40 rounded-2xl">
                   <div>
-                    <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider mb-1">📍 Lokasi Pengantaran / Alamat Drop Unit</label>
-                    <input type="text" name="lokasiPengantaran" value={formData.lokasiPengantaran} onChange={handleChange} placeholder="Contoh: Jl. Poros Malino Km. 7" className="w-full px-4 py-2.5 bg-slate-950 border border-purple-800/60 rounded-xl text-sm text-white outline-none font-mono" />
+                    <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider mb-1">
+                      📍 Lokasi Pengantaran / Alamat Drop Unit
+                    </label>
+                    <input
+                      type="text"
+                      name="lokasiPengantaran"
+                      value={formData.lokasiPengantaran}
+                      onChange={handleChange}
+                      placeholder="Contoh: Jl. Poros Malino Km. 7 / Link Google Maps"
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-purple-800/60 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-purple-500 transition-all font-mono"
+                    />
                   </div>
+
                   <div>
-                    <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider mb-1">👤 Nama PIC & No HP Penerima</label>
-                    <input type="text" name="picPenerima" value={formData.picPenerima} onChange={handleChange} placeholder="Contoh: Pak Budi (081234567890)" className="w-full px-4 py-2.5 bg-slate-950 border border-purple-800/60 rounded-xl text-sm text-amber-300 font-bold outline-none" />
+                    <label className="block text-[11px] font-bold text-purple-300 uppercase tracking-wider mb-1">
+                      👤 Nama PIC & No HP Penerima di Lokasi
+                    </label>
+                    <input
+                      type="text"
+                      name="picPenerima"
+                      value={formData.picPenerima}
+                      onChange={handleChange}
+                      placeholder="Contoh: Pak Budi (081234567890)"
+                      className="w-full px-4 py-2.5 bg-slate-950 border border-purple-800/60 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-purple-500 transition-all font-bold text-amber-300"
+                    />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Sales / VIA</label>
-                    <select name="sales" value={formData.sales} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm outline-none cursor-pointer">
-                      {salesOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    <select name="sales" value={formData.sales} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                      {salesOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
                   </div>
+
                   <div>
                     <label className="block text-xs font-bold text-amber-400 uppercase mb-1">Skema Kontrak</label>
-                    <select name="jenisSewa" value={formData.jenisSewa} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-amber-600/60 rounded-xl text-amber-300 font-bold text-sm outline-none cursor-pointer">
-                      {jenisSewaOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    <select name="jenisSewa" value={formData.jenisSewa} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-amber-600/60 rounded-xl text-amber-300 font-bold text-sm focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
+                      {jenisSewaOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-teal-400 uppercase mb-1">Estimasi Jumlah Unit</label>
-                    <input type="number" name="jumlahUnit" min="1" value={formData.jumlahUnit} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm outline-none" />
+
+                  <div className="md:col-span-2 grid grid-cols-2 gap-2 bg-slate-950 p-2 border border-slate-800 rounded-xl">
+                    <div>
+                      <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Estimasi Jumlah</label>
+                      <input type="number" name="jumlahDurasi" min="1" value={formData.jumlahDurasi} onChange={handleChange} required className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white font-bold text-sm outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Satuan Durasi</label>
+                      <select name="tipeDurasi" value={formData.tipeDurasi} onChange={handleChange} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm outline-none">
+                        <option value="Jam">Jam (HM)</option>
+                        <option value="Hari">Hari</option>
+                        <option value="Bulan">Bulan</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl transition-all cursor-pointer">
-                  Terbitkan Sales Order (SO) Baru 🚀
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jenis Alat Berat</label>
+                    <select name="jenisAlat" value={formData.jenisAlat} onChange={handleChange} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                      {alatOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jumlah Unit</label>
+                    <input type="number" name="jumlahUnit" min="1" value={formData.jumlahUnit} onChange={handleChange} required className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black uppercase text-sm rounded-xl shadow-lg hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer mt-4">
+                  Terbitkan Sales Order & Alokasi Baru 🚀
                 </button>
               </form>
             </div>
 
-            {/* DAFTAR ORDER & LAPORAN */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <h3 className="text-lg font-black text-white">Daftar Sales Order & Alokasi Lapangan</h3>
-                <button onClick={exportToExcel} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer">
-                  📥 Download Rekap Excel (CSV)
-                </button>
+            {/* DASHBOARD MONITORING & ALOKASI */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-black text-white">Dashboard Monitoring Sales Order & Alokasi</h2>
+                  <p className="text-xs text-slate-400">Kelola unit teralokasi, operator, logistik tronton, dan pelacakan GPS lapangan</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button onClick={exportToExcel} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-2">
+                    📥 Download Rekap Excel
+                  </button>
+
+                  <div className="flex items-center gap-2 bg-slate-950 px-3 py-2 border border-slate-800 rounded-xl">
+                    <span className="text-xs font-bold text-slate-400 uppercase">Filter Sales:</span>
+                    <select value={selectedSalesFilter} onChange={(e) => setSelectedSalesFilter(e.target.value)} className="bg-slate-900 text-amber-400 text-xs font-bold px-2 py-1 rounded-lg outline-none cursor-pointer">
+                      <option value="ALL">SEMUA SALES</option>
+                      {salesOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-4">
+              {/* DAFTAR ORDER */}
+              <div className="space-y-6">
                 {filteredOrders.map(order => (
-                  <div key={order.id} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                  <div key={order.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+                    
+                    {/* Header Card Order */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-900 pb-4">
                       <div>
-                        <span className="font-black text-amber-400">{order.id}</span> — <span className="font-bold text-white">{order.customer}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="px-3 py-1 bg-blue-500/20 text-blue-400 font-black text-xs rounded-lg border border-blue-500/30">
+                            {order.id}
+                          </span>
+                          <span className="text-sm font-bold text-amber-400">
+                            {order.customer}
+                          </span>
+                          <span className="px-2 py-0.5 bg-slate-900 text-slate-300 text-[10px] rounded font-mono">
+                            Proyek: {order.namaProyek}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-xs bg-blue-950 text-blue-300 px-3 py-1 rounded-full font-bold">{order.sales} | {order.jenisSewa}</span>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 font-bold">Sales: <span className="text-white">{order.sales}</span></span>
+                        <span className="text-xs text-slate-400 font-bold">Skema: <span className="text-amber-300">{order.jenisSewa}</span></span>
+                        <button onClick={() => sendWhatsAppNotification(order)} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow">
+                          💬 Kirim WA Sales
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-300 grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <div>📍 <b>Proyek:</b> {order.namaProyek} ({order.lokasiTujuan})</div>
-                      <div>🚜 <b>Alat:</b> {order.jenisAlat} (Jml: {order.jumlahUnit})</div>
-                      <div>👤 <b>PIC:</b> {order.picPenerima}</div>
-                      <div>📌 <b>Status:</b> {order.status}</div>
+
+                    {/* Informasi Request & Alokasi Utama */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      
+                      {/* Kolom 1: Detail Alat & Durasi */}
+                      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">📦 Request & Durasi</div>
+                        <div className="text-sm font-black text-white">{order.jenisAlat} <span className="text-blue-400">({order.jumlahUnit} Unit)</span></div>
+                        <div className="text-xs text-slate-300">Rencana: <span className="font-bold text-amber-300">{order.rencanaDurasi}</span></div>
+                        
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status Durasi Lapangan</label>
+                          <select value={order.statusDurasi} onChange={(e) => updateStatusDurasi(order.id, e.target.value)} className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 outline-none">
+                            <option value="Sesuai Rencana">Sesuai Rencana</option>
+                            <option value="Perpanjangan (Extend)">Perpanjangan (Extend)</option>
+                            <option value="Potensi Selesai Lebih Cepat">Potensi Selesai Lebih Cepat</option>
+                            <option value="Unit Idle / Pending">Unit Idle / Pending</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Catatan Aktual</label>
+                          <input type="text" value={order.catatanAktual} onChange={(e) => updateCatatanAktual(order.id, e.target.value)} placeholder="Tulis catatan operasional..." className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 outline-none" />
+                        </div>
+                      </div>
+
+                      {/* Kolom 2: Alokasi Unit Fleet & Operator */}
+                      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                        <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">🚜 Alokasi Fleet & Operator</div>
+                        
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Unit Teralokasi</label>
+                          <select value={order.kodeUnit} onChange={(e) => updateKodeUnit(order.id, e.target.value)} className="w-full px-3 py-1.5 bg-slate-950 border border-amber-600/50 rounded-lg text-xs text-amber-300 font-bold outline-none cursor-pointer">
+                            <option value="Belum Dipilih">-- Pilih Kode Unit --</option>
+                            {fleetDatabase.map(f => (
+                              <option key={f.code} value={f.code}>{f.code} ({f.class})</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Operator</label>
+                          <select value={order.namaOperator} onChange={(e) => updateOperator(order.id, e.target.value)} className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 outline-none cursor-pointer">
+                            <option value="Belum Ditentukan">-- Pilih Operator --</option>
+                            {operatorDatabase.map(op => (
+                              <option key={op} value={op}>{op}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">HM Awal / Kondisi Solar</label>
+                          <input type="text" value={order.hmAwal} onChange={(e) => updateHmAwal(order.id, e.target.value)} placeholder="Contoh: 1240.5 HM (Solar Full)" className="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 outline-none" />
+                        </div>
+                      </div>
+
+                      {/* Kolom 3: Koordinasi Logistik Tronton & Pengiriman */}
+                      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <div className="text-[11px] font-bold text-teal-400 uppercase tracking-wider">🚚 Logistik & Mobilisasi</div>
+                          <button onClick={() => sendLogisticsWhatsApp(order)} className="px-2 py-1 bg-teal-700 hover:bg-teal-600 text-white font-bold text-[10px] rounded transition-all cursor-pointer flex items-center gap-1">
+                            📲 WA Logistik
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">Lokasi Awal</label>
+                            <input type="text" value={order.lokasiAwal} onChange={(e) => updateLokasiAwal(order.id, e.target.value)} className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[11px] text-slate-200" />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">Lokasi Tujuan</label>
+                            <input type="text" value={order.lokasiTujuan} onChange={(e) => updateLokasiTujuan(order.id, e.target.value)} className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[11px] text-slate-200" />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">PIC Penerima</label>
+                            <input type="text" value={order.picPenerima} onChange={(e) => updatePicPenerima(order.id, e.target.value)} className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[11px] text-amber-300 font-bold" />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">Tronton Pengangkut</label>
+                            <select value={order.trontonUnit} onChange={(e) => updateTrontonUnit(order.id, e.target.value)} className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[11px] text-slate-200 cursor-pointer">
+                              {trontonFleet.map(t => (
+                                <option key={t.code} value={t.code}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-400 uppercase mb-0.5">Status Pengiriman</label>
+                          <select value={order.statusLogistik} onChange={(e) => updateStatusLogistik(order.id, e.target.value)} className="w-full px-2.5 py-1 bg-slate-950 border border-teal-800/60 rounded text-[11px] text-teal-300 font-bold cursor-pointer">
+                            <option value="⏳ Menunggu Jadwal Muat">⏳ Menunggu Jadwal Muat</option>
+                            <option value="🚚 Dalam Perjalanan (OTW)">🚚 Dalam Perjalanan (OTW)</option>
+                            <option value="✅ Tiba di Lokasi & Unit Menurun">✅ Tiba di Lokasi & Unit Menurun</option>
+                            <option value="🏁 Selesai & Tronton Kembali">🏁 Selesai & Tronton Kembali</option>
+                          </select>
+                        </div>
+                      </div>
+
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <button onClick={() => sendWhatsAppNotification(order)} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg cursor-pointer">
-                        💬 WhatsApp Sales
-                      </button>
-                      <button onClick={() => sendLogisticsWhatsApp(order)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg cursor-pointer">
-                        🚚 WhatsApp Logistik
-                      </button>
+
+                    {/* MODUL FOTO DOKUMENTASI & GPS TIMESTAMP */}
+                    <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                      
+                      <div className="flex items-center gap-6 w-full md:w-auto">
+                        {/* Foto Muat */}
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 bg-slate-950 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                            {order.fotoMuatUrl ? (
+                              <img src={order.fotoMuatUrl} alt="Muat" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[9px] text-slate-500 text-center">No Foto Muat</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold text-slate-300 uppercase">1. Foto Muat di Pool</div>
+                            <button onClick={() => triggerCamera(order.id, 'muat')} className="mt-1 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] rounded cursor-pointer shadow">
+                              📸 Ambil Foto Muat
+                            </button>
+                            <div className="text-[9px] text-slate-400 mt-0.5">🕒 {order.timestampMuat}</div>
+                            <div className="text-[9px] text-blue-400 font-mono">📍 {order.koordinatMuat}</div>
+                          </div>
+                        </div>
+
+                        {/* Foto Tiba */}
+                        <div className="flex items-center gap-3 border-l border-slate-800 pl-6">
+                          <div className="w-14 h-14 bg-slate-950 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                            {order.fotoTibaUrl ? (
+                              <img src={order.fotoTibaUrl} alt="Tiba" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[9px] text-slate-500 text-center">No Foto Tiba</span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-[10px] font-bold text-slate-300 uppercase">2. Foto Tiba di Lokasi</div>
+                            <button onClick={() => triggerCamera(order.id, 'tiba')} className="mt-1 px-3 py-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-[10px] rounded cursor-pointer shadow">
+                              📸 Ambil Foto Tiba
+                            </button>
+                            <div className="text-[9px] text-slate-400 mt-0.5">🕒 {order.timestampTiba}</div>
+                            <div className="text-[9px] text-amber-400 font-mono">📍 {order.koordinatTiba}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                        <button onClick={() => sendLogisticsUpdateToSales(order)} className="w-full md:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer transition-all">
+                          📤 Kirim Rekap Logistik ke Sales
+                        </button>
+                      </div>
+
                     </div>
+
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
 
-        {/* ================= DIVISI 2: ADMIN TIMESHEET HARIAN ================= */}
-        {activeTab === 'timesheet' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
+            {/* LIVE FLEET AVAILABILITY CHECKER */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-black text-white">Live Fleet Availability Checker (Armada Delta Perkasa)</h2>
+                  <p className="text-xs text-slate-400">Status real-time ketersediaan seluruh unit excavator, vibro, dozer, dan grader</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                  <input
+                    type="text"
+                    placeholder="Cari kode unit (Contoh: EXC.08)..."
+                    value={fleetSearchQuery}
+                    onChange={(e) => setFleetSearchQuery(e.target.value)}
+                    className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-amber-500"
+                  />
+
+                  <select
+                    value={selectedFleetFilter}
+                    onChange={(e) => setSelectedFleetFilter(e.target.value)}
+                    className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold outline-none cursor-pointer"
+                  >
+                    {uniqueClasses.map(cls => (
+                      <option key={cls} value={cls}>{cls}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Grid Kartu Unit */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-96 overflow-y-auto p-2">
+                {filteredFleet.map(unit => {
+                  const currentStatus = fleetStatus[unit.code] || 'Ready';
+                  let statusBg = 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300';
+                  if (currentStatus === 'Working') statusBg = 'bg-blue-950/40 border-blue-500/40 text-blue-300';
+                  if (currentStatus === 'Breakdown') statusBg = 'bg-red-950/40 border-red-500/40 text-red-300';
+
+                  return (
+                    <div key={unit.code} className={`p-3 rounded-2xl border flex flex-col justify-between gap-2 shadow-sm ${statusBg}`}>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider opacity-80">{unit.class}</div>
+                        <div className="text-base font-black tracking-wide">{unit.code}</div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <select
+                          value={currentStatus}
+                          onChange={(e) => updateFleetCondition(unit.code, e.target.value)}
+                          className="w-full text-[10px] font-bold bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-white outline-none cursor-pointer"
+                        >
+                          <option value="Ready">🟢 Ready</option>
+                          <option value="Working">🔵 Working</option>
+                          <option value="Breakdown">🔴 Breakdown</option>
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          /* TAB 2: ADMIN TIMESHEET HARIAN (SESUAI STRUKTUR SPREADSHEET LAMPIRAN) */
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
             <div>
-              <h2 className="text-lg font-black text-white mb-1">Admin Timesheet Harian (Format Spreadsheet)</h2>
-              <p className="text-xs text-amber-400 font-bold uppercase">Pencatatan jam kerja operator, Hour Meter (HM), dan kalkulasi otomatis</p>
+              <h2 className="text-xl font-black text-white mb-1">Modul Admin Timesheet Harian</h2>
+              <p className="text-xs text-amber-400 uppercase tracking-wider font-bold">Pencatatan Jam Operasional, Hour Meter (HM), Overtime (OT), dan Gaji Operator Sesuai Format Resmi</p>
             </div>
 
-            <form onSubmit={handleAddTimesheet} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">Tanggal</label>
-                <input type="text" value={tsForm.tanggal} onChange={(e) => setTsForm({...tsForm, tanggal: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
+            {/* FORM INPUT TIMESHEET HARIAN */}
+            <form onSubmit={handleAddTimesheet} className="bg-slate-950 p-6 border border-slate-800 rounded-2xl space-y-4">
+              <div className="text-xs font-black text-amber-400 uppercase tracking-wider mb-2">➕ Tambah Baris Timesheet Baru</div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Gaji Op</label>
+                  <input type="text" value={tsForm.kodeGajiOp} onChange={(e) => setTsForm({...tsForm, kodeGajiOp: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kode Tagih</label>
+                  <input type="text" value={tsForm.kodeTagih} onChange={(e) => setTsForm({...tsForm, kodeTagih: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Job ID</label>
+                  <input type="text" value={tsForm.jobId} onChange={(e) => setTsForm({...tsForm, jobId: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal</label>
+                  <input type="text" value={tsForm.tanggal} onChange={(e) => setTsForm({...tsForm, tanggal: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
               </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">Kode Unit</label>
-                <input type="text" value={tsForm.unitCode} onChange={(e) => setTsForm({...tsForm, unitCode: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Operator</label>
+                  <select value={tsForm.operator} onChange={(e) => setTsForm({...tsForm, operator: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white cursor-pointer">
+                    {operatorDatabase.map(op => (
+                      <option key={op} value={op}>{op}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Code</label>
+                  <select value={tsForm.unitCode} onChange={(e) => setTsForm({...tsForm, unitCode: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-amber-300 font-bold cursor-pointer">
+                    {fleetDatabase.map(f => (
+                      <option key={f.code} value={f.code}>{f.code}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">HM Start</label>
+                  <input type="number" step="0.1" value={tsForm.hmStart} onChange={(e) => setTsForm({...tsForm, hmStart: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">HM End</label>
+                  <input type="number" step="0.1" value={tsForm.hmEnd} onChange={(e) => setTsForm({...tsForm, hmEnd: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
               </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">Nama Operator</label>
-                <input type="text" value={tsForm.operator} onChange={(e) => setTsForm({...tsForm, operator: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Penyewa (Customer)</label>
+                  <input type="text" value={tsForm.namaPenyewa} onChange={(e) => setTsForm({...tsForm, namaPenyewa: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Alamat Proyek</label>
+                  <input type="text" value={tsForm.alamat} onChange={(e) => setTsForm({...tsForm, alamat: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Keterangan / Status</label>
+                  <input type="text" value={tsForm.keterangan} onChange={(e) => setTsForm({...tsForm, keterangan: e.target.value})} placeholder="Contoh: Cukup 200 Jam" className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" />
+                </div>
               </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">Nama Penyewa</label>
-                <input type="text" value={tsForm.namaPenyewa} onChange={(e) => setTsForm({...tsForm, namaPenyewa: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
-              </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">HM Start</label>
-                <input type="number" step="0.1" value={tsForm.hmStart} onChange={(e) => setTsForm({...tsForm, hmStart: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
-              </div>
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold mb-1">HM End</label>
-                <input type="number" step="0.1" value={tsForm.hmEnd} onChange={(e) => setTsForm({...tsForm, hmEnd: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white" required />
-              </div>
-              <div className="md:col-span-2 flex items-end">
-                <button type="submit" className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition-all cursor-pointer">
-                  + Simpan Timesheet Harian
-                </button>
-              </div>
+
+              <button type="submit" className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase text-xs rounded-xl shadow cursor-pointer transition-all">
+                Simpan Baris Timesheet ⏱️
+              </button>
             </form>
 
-            {/* TABEL TIMESHEET */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
-                    <th className="p-3">Tanggal</th>
-                    <th className="p-3">Unit</th>
-                    <th className="p-3">Operator</th>
-                    <th className="p-3">Penyewa</th>
-                    <th className="p-3">HM Start</th>
-                    <th className="p-3">HM End</th>
-                    <th className="p-3">Total HM</th>
+            {/* TABEL REKAP TIMESHEET (VIEW) */}
+            <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">ID / Tanggal</th>
+                    <th className="p-3">Operator & Unit</th>
+                    <th className="p-3">Penyewa & Lokasi</th>
+                    <th className="p-3 text-center">HM Start</th>
+                    <th className="p-3 text-center">HM End</th>
+                    <th className="p-3 text-center">Total HM</th>
+                    <th className="p-3 text-center">Working Hour</th>
                     <th className="p-3">Keterangan</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-800/60 font-mono">
                   {timesheetList.map(ts => (
-                    <tr key={ts.id} className="border-b border-slate-800/60 hover:bg-slate-950/40">
-                      <td className="p-3">{ts.tanggal}</td>
-                      <td className="p-3 font-bold text-amber-400">{ts.unitCode}</td>
-                      <td className="p-3">{ts.operator}</td>
-                      <td className="p-3">{ts.namaPenyewa}</td>
-                      <td className="p-3">{ts.hmStart}</td>
-                      <td className="p-3">{ts.hmEnd}</td>
-                      <td className="p-3 font-bold text-emerald-400">{ts.totalHm} Jam</td>
-                      <td className="p-3 text-slate-400">{ts.keterangan}</td>
+                    <tr key={ts.id} className="hover:bg-slate-950/50">
+                      <td className="p-3">
+                        <div className="font-bold text-amber-400">{ts.id}</div>
+                        <div className="text-[10px] text-slate-400">{ts.tanggal} ({ts.hari})</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold text-white">{ts.operator}</div>
+                        <div className="text-[10px] text-blue-400">{ts.unitCode} - {ts.model}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold text-slate-200">{ts.namaPenyewa}</div>
+                        <div className="text-[10px] text-slate-400">{ts.alamat}</div>
+                      </td>
+                      <td className="p-3 text-center">{ts.hmStart}</td>
+                      <td className="p-3 text-center">{ts.hmEnd}</td>
+                      <td className="p-3 text-center font-bold text-emerald-400">{ts.totalHm}</td>
+                      <td className="p-3 text-center text-amber-300">{ts.unitWorkingHour}</td>
+                      <td className="p-3 text-slate-300 font-sans">{ts.keterangan}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
 
-        {/* ================= DIVISI 3: KEPALA OPERATOR & LOGISTIK ================= */}
-        {activeTab === 'logistik' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-            <div>
-              <h2 className="text-lg font-black text-white mb-1">Kontrol Lapangan & Instruksi Logistik Unit</h2>
-              <p className="text-xs text-purple-400 font-bold uppercase">Monitoring armada towing, pengantaran alat berat, dan kesiapan site</p>
-            </div>
-
-            <div className="space-y-3">
-              {orderList.map(order => (
-                <div key={order.id} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <div className="font-bold text-white">SO: {order.id} — {order.customer}</div>
-                    <div className="text-xs text-slate-400 mt-1">Tujuan: {order.lokasiTujuan} | Tronton: {order.trontonUnit}</div>
-                    <div className="text-xs text-purple-300 font-semibold mt-1">Status: {order.statusLogistik}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => triggerCamera(order.id, 'muat')} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg cursor-pointer">
-                      📸 Foto Muat
-                    </button>
-                    <button onClick={() => triggerCamera(order.id, 'tiba')} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg cursor-pointer">
-                      📸 Foto Tiba
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
