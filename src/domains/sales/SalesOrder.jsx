@@ -81,7 +81,7 @@ export default function SalesOrder() {
   };
 
   const handleWhatsAppSO = (order) => {
-  const text = `*SALES ORDER - CV CHANDRA DELTA PERKASA*
+    const text = `*SALES ORDER - CV CHANDRA DELTA PERKASA*
 
 No. SO: *${order.id}*
 Customer: ${order.customer}
@@ -96,11 +96,10 @@ Jumlah: ${order.jumlahUnit} Unit
 Durasi: ${order.durasi}
 Status: ${order.status}`;
 
-  window.open(
-    `https://wa.me/?text=${encodeURIComponent(text)}`,
-    "_blank"
-  );
-};
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(text)}`,
+      "_blank"
+    );
   };
 
   return (
