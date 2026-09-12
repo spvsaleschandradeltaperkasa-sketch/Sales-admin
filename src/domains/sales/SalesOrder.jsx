@@ -5,6 +5,7 @@ const salesOptions = [
   { label: "UCI", value: "UCI" },
   { label: "CDP", value: "CDP" },
   { label: "FAN", value: "FAN" },
+  { label: "CDP", value: "CDP" },
 ];
 
 const alatOptions = [
