@@ -5,7 +5,6 @@ const salesOptions = [
   { label: "UCI", value: "UCI" },
   { label: "CDP", value: "CDP" },
   { label: "FAN", value: "FAN" },
-  { label: "CDP", value: "CDP" },
 ];
 
 const alatOptions = [
@@ -89,24 +88,25 @@ export default function SalesOrder() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* HEADER WITH LOGO */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 border border-amber-500/30 p-6 rounded-3xl shadow-xl gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white/5 border border-slate-700 rounded-2xl flex items-center justify-center p-2 shadow-inner">
-            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow">
+          <div className="w-16 h-16 bg-white border border-amber-500/40 rounded-2xl flex flex-col items-center justify-center p-2 shadow-inner">
+            <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow">
               <polygon points="50,10 90,85 10,85" fill="#991b1b" />
-              <polygon points="50,30 75,75 25,75" fill="#dc2626" opacity="0.3" />
-              <circle cx="50" cy="50" r="8" fill="#ffffff" />
             </svg>
+            <div className="text-[9px] font-black tracking-tighter text-slate-900 leading-none mt-1 text-center">
+              DELTA<br/>PERKASA
+            </div>
           </div>
           <div>
-            <div className="text-xs text-amber-400 font-bold tracking-wider uppercase">
-              Delta Perkasa Rental
+            <div className="inline-block bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
+              CV CHANDRA DELTA PERKASA
             </div>
             <h2 className="text-2xl font-black text-white">
               📋 Sales Order (SO)
             </h2>
             <p className="text-xs text-slate-400">
-              Pembuatan order rental alat berat dan rekapitulasi data pesanan.
+              Makassar & Sekitarnya • Melayani Sulawesi
             </p>
           </div>
         </div>
