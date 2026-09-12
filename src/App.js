@@ -579,6 +579,7 @@ export default function SalesOrderDashboard() {
     { label: 'ANS', value: 'ANS' },
     { label: 'UCI', value: 'UCI' },
     { label: 'CDP', value: 'CDP' },
+    { label: 'CDF', value: 'CDF' },
     { label: 'FAN', value: 'FAN' }
   ];
 
