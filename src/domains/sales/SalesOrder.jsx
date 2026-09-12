@@ -81,8 +81,26 @@ export default function SalesOrder() {
   };
 
   const handleWhatsAppSO = (order) => {
-    const text = `*SALES ORDER - CV CHANDRA DELTA PERKASA*\n\nNo. SO: *${order.id}*\nCustomer: ${order.customer}\nProyek: ${order.namaProyek}\nLokasi: ${order.lokasi}\nPIC: ${order.picPenerima}\nSales PIC: ${order.sales}\nJenis Alat: ${order.jenisAlat}\nJumlah: ${order.jumlahUnit} Unit\nDurasi: ${order.durasi}\nStatus: ${order.status}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  const text = `*SALES ORDER - CV CHANDRA DELTA PERKASA*
+
+No. SO: *${order.id}*
+Customer: ${order.customer}
+Proyek: ${order.namaProyek}
+Lokasi Proyek: ${order.lokasi}
+Lokasi Pengantaran / Drop Unit: ${order.lokasiPengantaran || "-"}
+PIC Penerima: ${order.picPenerima || "-"}
+Sales PIC: ${order.sales}
+Jenis Kontrak: ${order.jenisSewa}
+Jenis Alat: ${order.jenisAlat}
+Jumlah: ${order.jumlahUnit} Unit
+Durasi: ${order.durasi}
+Status: ${order.status}`;
+
+  window.open(
+    `https://wa.me/?text=${encodeURIComponent(text)}`,
+    "_blank"
+  );
+};
   };
 
   return (
