@@ -1,4 +1,85 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+
+const STORAGE_KEY = 'delta-perkasa-dashboard-state';
+
+const DEFAULT_ORDERS = [
+  {
+    id: 'SO-7208',
+    customer: 'PT Mahligai Artha Sejahtera',
+    namaProyek: 'Land Clearing 44',
+    lokasiAwal: 'Pool Delta Parang Loe, Makassar',
+    lokasiTujuan: 'Makassar (Site 44)',
+    picPenerima: 'Bpk. Hendra (081298765432)',
+    sales: 'ANS',
+    jenisAlat: 'Excavator 20 Ton - Bucket',
+    jenisSewa: 'S1',
+    rencanaDurasi: '3 Hari',
+    statusDurasi: 'Sesuai Rencana',
+    catatanAktual: 'Sedang berjalan di lapangan',
+    catatanLogistik: 'Bawa breaker & selang hidrolik cadangan.',
+    statusLogistik: '🚚 Dalam Perjalanan (OTW)',
+    trontonUnit: 'SL01',
+    hmAwal: '1240.5 HM (Solar Full)',
+    fotoMuatUrl: null,
+    fotoTibaUrl: null,
+    timestampMuat: '-',
+    timestampTiba: '-',
+    koordinatMuat: '-',
+    koordinatTiba: '-',
+    jumlahUnit: 1,
+    kodeUnit: 'EXC.08',
+    namaOperator: 'Baharuddin',
+    status: 'Unit Ready / Dispatched'
+  }
+];
+
+const DEFAULT_TIMESHEETS = [
+  {
+    id: 'TS-1001',
+    kodeGajiOp: '1907',
+    kodeTagih: '2173',
+    jobId: '0320-0526-ANS-S1',
+    tanggal: '11-Sep-26',
+    hari: 'Jumat',
+    operator: 'BUSTAM',
+    attach: 'Bucket',
+    unitCode: 'EXC.92',
+    model: 'SY215H',
+    namaPenyewa: 'MAHLIGAI ARTHA SEJAHTERA',
+    alamat: 'BULELENG, BUNGKU PESISIR, MOROWALI',
+    jobVia: 'ANS',
+    jamMulai: '',
+    jamSelesai: '',
+    durasiIstirahat: '',
+    standby: '',
+    totalJamKerja: '',
+    hmStart: 1030.0,
+    hmEnd: 1032.5,
+    totalHm: 2.5,
+    ot: 0,
+    unitWorkingHour: 2.47,
+    opWorkingHour: 2.47,
+    hariKerjaAlat: 1.00,
+    pencukupan: '',
+    keterangan: 'Cukup 200 Jam',
+    tipeJam: 'Hour Meter'
+  }
+];
+
+const DEFAULT_FLEET_STATUS = {
+  'EXC.08': 'Working',
+  'EXC.01': 'Ready',
+  'MG-1': 'Breakdown'
+};
+
+// Generator ID unik berbasis waktu + counter, menghindari duplikasi
+// dari pendekatan lama yang memakai angka acak murni.
+let idCounter = 0;
+function generateId(prefix) {
+  idCounter += 1;
+  const time = Date.now().toString(36).toUpperCase().slice(-5);
+  return `${prefix}-${time}${idCounter}`;
+}
 
 export default function SalesOrderDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' atau 'timesheet'
@@ -21,39 +102,12 @@ export default function SalesOrderDashboard() {
   const [selectedFleetFilter, setSelectedFleetFilter] = useState('ALL');
   const [fleetSearchQuery, setFleetSearchQuery] = useState('');
 
-  // State untuk Timesheet Admin Harian (Sesuai Struktur Spreadsheet Lampiran)
-  const [timesheetList, setTimesheetList] = useState([
-    {
-      id: 'TS-001',
-      kodeGajiOp: '1907',
-      kodeTagih: '2173',
-      jobId: '0320-0526-ANS-S1',
-      tanggal: '11-Sep-26',
-      hari: 'Jumat',
-      operator: 'BUSTAM',
-      attach: 'Bucket',
-      unitCode: 'EXC.92',
-      model: 'SY215H',
-      namaPenyewa: 'MAHLIGAI ARTHA SEJAHTERA',
-      alamat: 'BULELENG, BUNGKU PESISIR, MOROWALI',
-      jobVia: 'ANS',
-      jamMulai: '',
-      jamSelesai: '',
-      durasiIstirahat: '',
-      standby: '',
-      totalJamKerja: '',
-      hmStart: 1030.0,
-      hmEnd: 1032.5,
-      totalHm: 2.5,
-      ot: 0,
-      unitWorkingHour: 2.47,
-      opWorkingHour: 2.47,
-      hariKerjaAlat: 1.00,
-      pencukupan: '',
-      keterangan: 'Cukup 200 Jam',
-      tipeJam: 'Hour Meter'
-    }
-  ]);
+  const [timesheetList, setTimesheetList] = useState(DEFAULT_TIMESHEETS);
+  const [orderList, setOrderList] = useState(DEFAULT_ORDERS);
+  const [fleetStatus, setFleetStatus] = useState(DEFAULT_FLEET_STATUS);
+
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved | error
 
   const [tsForm, setTsForm] = useState({
     kodeGajiOp: '1907',
@@ -80,16 +134,21 @@ export default function SalesOrderDashboard() {
     keterangan: '',
     tipeJam: 'Hour Meter'
   });
+  const [tsFormError, setTsFormError] = useState('');
 
   // Refs untuk kamera tersembunyi
   const fileInputRef = useRef(null);
   const activeCaptureRef = useRef({ orderId: null, jenis: null });
 
   const salesPhoneBook = {
-    'ANS': '6285165659907', 
-    'UCI': '6281234567891', 
-    'CDP': '6285165659907', 
-    'FAN': '6281234567893'  
+    // PERHATIAN: nomor UCI, CDP dan FAN masih memakai nomor placeholder yang
+    // sama dengan ANS/logistik. Ganti dengan nomor WhatsApp asli
+    // masing-masing sales sebelum dipakai di lapangan, agar notifikasi
+    // tidak salah kirim ke orang yang sama.
+    'ANS': '6285165659907',
+    'UCI': '6281234567891',
+    'CDP': '6285165659907',
+    'FAN': '6281234567893'
   };
 
   const logisticsPhone = '6285165659907';
@@ -250,44 +309,68 @@ export default function SalesOrderDashboard() {
     { code: 'VBR.TW.02', class: 'Vibro 10 Ton' }
   ];
 
-  const [orderList, setOrderList] = useState([
-    {
-      id: 'SO-7208',
-      customer: 'PT Mahligai Artha Sejahtera',
-      namaProyek: 'Land Clearing 44',
-      lokasiAwal: 'Pool Delta Parang Loe, Makassar',
-      lokasiTujuan: 'Makassar (Site 44)',
-      picPenerima: 'Bpk. Hendra (081298765432)',
-      sales: 'ANS',
-      jenisAlat: 'Excavator 20 Ton - Bucket',
-      jenisSewa: 'S1',
-      rencanaDurasi: '3 Hari',
-      statusDurasi: 'Sesuai Rencana',
-      catatanAktual: 'Sedang berjalan di lapangan',
-      catatanLogistik: 'Bawa breaker & selang hidrolik cadangan.',
-      statusLogistik: '🚚 Dalam Perjalanan (OTW)',
-      trontonUnit: 'SL01',
-      hmAwal: '1240.5 HM (Solar Full)',
-      fotoMuatUrl: null,
-      fotoTibaUrl: null,
-      timestampMuat: '-',
-      timestampTiba: '-',
-      koordinatMuat: '-',
-      koordinatTiba: '-',
-      jumlahUnit: 1,
-      kodeUnit: 'EXC.08',
-      namaOperator: 'Baharuddin',
-      status: 'Unit Ready / Dispatched'
-    }
-  ]);
+  const [notification, setNotification] = useState({ show: false, message: '', tone: 'success' });
 
-  const [fleetStatus, setFleetStatus] = useState({
-    'EXC.08': 'Working',
-    'EXC.01': 'Ready',
-    'MG-1': 'Breakdown'
-  });
+  const showNotification = (message, tone = 'success') => {
+    setNotification({ show: true, message, tone });
+    setTimeout(() => setNotification({ show: false, message: '', tone: 'success' }), 4000);
+  };
 
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  // ---------------------------------------------------------------------
+  // PERSISTENSI DATA (menggantikan penyimpanan di memori yang hilang saat
+  // halaman di-refresh). Data disimpan sebagai data BERSAMA (shared), jadi
+  // bisa diakses oleh semua orang yang membuka dashboard ini — cocok untuk
+  // tim sales/logistik yang berbagi satu papan kerja. Foto (blob URL) tidak
+  // ikut disimpan karena tidak bertahan lintas sesi; hanya metadata
+  // (waktu & koordinat) yang tetap tersimpan.
+  // ---------------------------------------------------------------------
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(STORAGE_KEY, true);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (Array.isArray(parsed.orderList)) {
+            setOrderList(parsed.orderList.map(o => ({ ...o, fotoMuatUrl: null, fotoTibaUrl: null })));
+          }
+          if (Array.isArray(parsed.timesheetList)) {
+            setTimesheetList(parsed.timesheetList);
+          }
+          if (parsed.fleetStatus) {
+            setFleetStatus(parsed.fleetStatus);
+          }
+        }
+      } catch (err) {
+        // Key belum pernah dibuat / gagal ambil — lanjut pakai data default.
+        console.warn('Gagal memuat data tersimpan, memakai data awal:', err);
+      } finally {
+        if (!cancelled) setIsLoaded(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Simpan otomatis (debounced) setiap kali data berubah, setelah load awal selesai.
+  useEffect(() => {
+    if (!isLoaded) return;
+    setSaveState('saving');
+    const timeout = setTimeout(async () => {
+      try {
+        const payload = JSON.stringify({
+          orderList: orderList.map(({ fotoMuatUrl, fotoTibaUrl, ...rest }) => rest),
+          timesheetList,
+          fleetStatus
+        });
+        const result = await window.storage.set(STORAGE_KEY, payload, true);
+        setSaveState(result ? 'saved' : 'error');
+      } catch (err) {
+        console.error('Gagal menyimpan data:', err);
+        setSaveState('error');
+      }
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, [orderList, timesheetList, fleetStatus, isLoaded]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -296,9 +379,9 @@ export default function SalesOrderDashboard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newOrderNo = 'SO-' + Math.floor(1000 + Math.random() * 9000);
+    const newOrderNo = generateId('SO');
     const durasiString = `${formData.jumlahDurasi} ${formData.tipeDurasi}`;
-    
+
     const newOrder = {
       id: newOrderNo,
       customer: formData.customer,
@@ -328,11 +411,8 @@ export default function SalesOrderDashboard() {
       status: 'Menunggu Alokasi Unit'
     };
 
-    setOrderList([newOrder, ...orderList]);
-    setNotification({
-      show: true,
-      message: `Sales Order #${newOrderNo} berhasil diterbitkan!`
-    });
+    setOrderList(prev => [newOrder, ...prev]);
+    showNotification(`Sales Order #${newOrderNo} berhasil diterbitkan!`);
 
     setFormData({
       customer: '',
@@ -347,23 +427,37 @@ export default function SalesOrderDashboard() {
       jumlahDurasi: 8,
       jumlahUnit: 1
     });
-
-    setTimeout(() => {
-      setNotification({ show: false, message: '' });
-    }, 4000);
   };
 
-  // Handler Tambah Timesheet Harian (Sesuai Lampiran Spreadsheet)
+  const deleteOrder = (id) => {
+    if (!window.confirm(`Hapus Sales Order ${id}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setOrderList(prev => prev.filter(order => order.id !== id));
+    showNotification(`Sales Order ${id} dihapus.`, 'info');
+  };
+
+  // Handler Tambah Timesheet Harian (Sesuai Lampiran Spreadsheet), dengan validasi HM
   const handleAddTimesheet = (e) => {
     e.preventDefault();
-    const hmS = parseFloat(tsForm.hmStart) || 0;
-    const hmE = parseFloat(tsForm.hmEnd) || 0;
+    setTsFormError('');
+
+    const hmS = parseFloat(tsForm.hmStart);
+    const hmE = parseFloat(tsForm.hmEnd);
+
+    if (Number.isNaN(hmS) || Number.isNaN(hmE)) {
+      setTsFormError('HM Start dan HM End wajib diisi dengan angka.');
+      return;
+    }
+    if (hmE < hmS) {
+      setTsFormError('HM End tidak boleh lebih kecil dari HM Start — periksa kembali input jam meter.');
+      return;
+    }
+
     const total = Number((hmE - hmS).toFixed(2));
     const otVal = parseFloat(tsForm.ot) || 0;
     const workingHour = Number((total > 0 ? total : 0).toFixed(2));
 
     const newTs = {
-      id: 'TS-' + Math.floor(1000 + Math.random() * 9000),
+      id: generateId('TS'),
       kodeGajiOp: tsForm.kodeGajiOp,
       kodeTagih: tsForm.kodeTagih,
       jobId: tsForm.jobId,
@@ -393,43 +487,48 @@ export default function SalesOrderDashboard() {
       tipeJam: tsForm.tipeJam
     };
 
-    setTimesheetList([newTs, ...timesheetList]);
-    setNotification({ show: true, message: 'Data Timesheet Admin Harian berhasil ditambahkan!' });
-    setTimeout(() => setNotification({ show: false, message: '' }), 3000);
+    setTimesheetList(prev => [newTs, ...prev]);
+    showNotification('Data Timesheet Admin Harian berhasil ditambahkan!');
+  };
+
+  const deleteTimesheet = (id) => {
+    if (!window.confirm(`Hapus baris timesheet ${id}?`)) return;
+    setTimesheetList(prev => prev.filter(ts => ts.id !== id));
+    showNotification(`Baris timesheet ${id} dihapus.`, 'info');
   };
 
   const updateKodeUnit = (id, newKodeUnit) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, kodeUnit: newKodeUnit } : order
     ));
   };
 
   const updateOperator = (id, newOperator) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, namaOperator: newOperator } : order
     ));
   };
 
   const updateStatusDurasi = (id, newStatusDurasi) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, statusDurasi: newStatusDurasi } : order
     ));
   };
 
   const updateCatatanAktual = (id, newCatatan) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, catatanAktual: newCatatan } : order
     ));
   };
 
   const updateCatatanLogistik = (id, newLogistikNote) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, catatanLogistik: newLogistikNote } : order
     ));
   };
 
   const updateHmAwal = (id, newHmAwal) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, hmAwal: newHmAwal } : order
     ));
   };
@@ -447,13 +546,13 @@ export default function SalesOrderDashboard() {
   };
 
   const updateTrontonUnit = (id, newTronton) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, trontonUnit: newTronton } : order
     ));
   };
 
   const updateStatusLogistik = (id, newLogistikStatus) => {
-    setOrderList(orderList.map(order => 
+    setOrderList(orderList.map(order =>
       order.id === id ? { ...order, statusLogistik: newLogistikStatus } : order
     ));
   };
@@ -476,38 +575,29 @@ export default function SalesOrderDashboard() {
     const now = new Date();
     const timeString = now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' });
 
+    const applyCapture = (koordinatStr) => {
+      setOrderList(prev => prev.map(order => {
+        if (order.id === orderId) {
+          if (jenis === 'muat') {
+            return { ...order, fotoMuatUrl: imageUrl, timestampMuat: timeString, koordinatMuat: koordinatStr };
+          }
+          return { ...order, fotoTibaUrl: imageUrl, timestampTiba: timeString, koordinatTiba: koordinatStr };
+        }
+        return order;
+      }));
+    };
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude.toFixed(5);
           const lng = position.coords.longitude.toFixed(5);
-          const koordinatStr = `${lat}, ${lng}`;
-
-          setOrderList(orderList.map(order => {
-            if (order.id === orderId) {
-              if (jenis === 'muat') {
-                return { ...order, fotoMuatUrl: imageUrl, timestampMuat: timeString, koordinatMuat: koordinatStr };
-              } else {
-                return { ...order, fotoTibaUrl: imageUrl, timestampTiba: timeString, koordinatTiba: koordinatStr };
-              }
-            }
-            return order;
-          }));
+          applyCapture(`${lat}, ${lng}`);
         },
-        () => {
-          const koordinatStr = '-5.14766, 119.43273 (Makassar Area)';
-          setOrderList(orderList.map(order => {
-            if (order.id === orderId) {
-              if (jenis === 'muat') {
-                return { ...order, fotoMuatUrl: imageUrl, timestampMuat: timeString, koordinatMuat: koordinatStr };
-              } else {
-                return { ...order, fotoTibaUrl: imageUrl, timestampTiba: timeString, koordinatTiba: koordinatStr };
-              }
-            }
-            return order;
-          }));
-        }
+        () => applyCapture('-5.14766, 119.43273 (Makassar Area)')
       );
+    } else {
+      applyCapture('-5.14766, 119.43273 (Makassar Area)');
     }
     e.target.value = null;
   };
@@ -516,8 +606,8 @@ export default function SalesOrderDashboard() {
     setFleetStatus(prev => ({ ...prev, [unitCode]: condition }));
   };
 
-  // FUNGSI DOWNLOAD EXCEL (CSV FORMAT)
-  const exportToExcel = () => {
+  // FUNGSI DOWNLOAD EXCEL (CSV FORMAT) — Sales Order
+  const exportOrdersToExcel = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "No Order,Customer,Proyek,Sales,Request Alat,Jumlah Unit,Skema,Durasi,Lokasi Awal,Lokasi Tujuan,PIC Penerima,Unit Teralokasi,Operator,HM Awal,Status Logistik,Status Order\n";
 
@@ -547,6 +637,33 @@ export default function SalesOrderDashboard() {
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `Rekap_Sales_Order_Delta_Perkasa_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // FUNGSI DOWNLOAD EXCEL (CSV FORMAT) — Timesheet (sebelumnya tidak tersedia)
+  const exportTimesheetToExcel = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Kode Gaji Operator,Kode Tagih,Job ID,Tanggal,Hari,Operator,Attachment,Unit Code,Model,Nama Penyewa,Alamat,Job Via,Jam Mulai,Jam Selesai,Durasi Istirahat,Standby,Total Jam Kerja,HM Start,HM End,Total HM,OT,Unit Working Hour,Operator Working Hour,Hari Kerja Alat,Pencukupan,Keterangan,Tipe Jam\n";
+
+    timesheetList.forEach(ts => {
+      const row = [
+        ts.kodeGajiOp, ts.kodeTagih, ts.jobId, ts.tanggal, ts.hari,
+        `"${ts.operator}"`, ts.attach, ts.unitCode, ts.model,
+        `"${ts.namaPenyewa}"`, `"${ts.alamat}"`, ts.jobVia,
+        ts.jamMulai, ts.jamSelesai, ts.durasiIstirahat, ts.standby, ts.totalJamKerja,
+        ts.hmStart, ts.hmEnd, ts.totalHm, ts.ot,
+        ts.unitWorkingHour, ts.opWorkingHour, ts.hariKerjaAlat,
+        ts.pencukupan, `"${ts.keterangan}"`, ts.tipeJam
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Rekap_Timesheet_Delta_Perkasa_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -600,38 +717,76 @@ export default function SalesOrderDashboard() {
     { label: 'S3', value: 'S3' }
   ];
 
-  const filteredOrders = selectedSalesFilter === 'ALL' 
-    ? orderList 
+  const filteredOrders = selectedSalesFilter === 'ALL'
+    ? orderList
     : orderList.filter(order => order.sales === selectedSalesFilter);
 
   const filteredFleet = fleetDatabase.filter(item => {
     const matchesClass = selectedFleetFilter === 'ALL' || item.class === selectedFleetFilter;
-    const matchesSearch = item.code.toLowerCase().includes(fleetSearchQuery.toLowerCase()) || 
+    const matchesSearch = item.code.toLowerCase().includes(fleetSearchQuery.toLowerCase()) ||
                           item.class.toLowerCase().includes(fleetSearchQuery.toLowerCase());
     return matchesClass && matchesSearch;
   });
 
   const uniqueClasses = ['ALL', ...new Set(fleetDatabase.map(item => item.class))];
 
+  // ------------------ REKAP RINGKASAN TIMESHEET (fitur baru) ------------------
+  const recapByOperator = React.useMemo(() => {
+    const map = {};
+    timesheetList.forEach(ts => {
+      if (!map[ts.operator]) {
+        map[ts.operator] = { operator: ts.operator, totalHm: 0, totalOt: 0, hariKerja: 0, entries: 0 };
+      }
+      map[ts.operator].totalHm += ts.totalHm || 0;
+      map[ts.operator].totalOt += ts.ot || 0;
+      map[ts.operator].hariKerja += ts.hariKerjaAlat || 0;
+      map[ts.operator].entries += 1;
+    });
+    return Object.values(map).sort((a, b) => b.totalHm - a.totalHm);
+  }, [timesheetList]);
+
+  const recapByUnit = React.useMemo(() => {
+    const map = {};
+    timesheetList.forEach(ts => {
+      if (!map[ts.unitCode]) {
+        map[ts.unitCode] = { unitCode: ts.unitCode, totalHm: 0, entries: 0 };
+      }
+      map[ts.unitCode].totalHm += ts.totalHm || 0;
+      map[ts.unitCode].entries += 1;
+    });
+    return Object.values(map).sort((a, b) => b.totalHm - a.totalHm);
+  }, [timesheetList]);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="text-4xl animate-pulse">🚜</div>
+          <div className="text-sm text-slate-400 font-bold">Memuat data dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center">
-      
+
       {/* Hidden File Input untuk Kamera */}
-      <input 
-        type="file" 
-        accept="image/*" 
-        capture="environment" 
-        ref={fileInputRef} 
-        onChange={handleFileCaptured} 
-        className="hidden" 
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        ref={fileInputRef}
+        onChange={handleFileCaptured}
+        className="hidden"
       />
 
       <div className="max-w-6xl w-full space-y-8">
-        
+
         {/* HEADER BRANDING */}
         <div className="relative bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border border-amber-500/40 rounded-3xl p-8 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          
+
           <div className="flex items-center gap-5 z-10">
             <div className="w-20 h-20 bg-white rounded-2xl p-2 shadow-lg border-2 border-amber-500 flex items-center justify-center shrink-0">
               <div className="text-center font-black">
@@ -664,28 +819,48 @@ export default function SalesOrderDashboard() {
           </div>
         </div>
 
-        {/* NAVIGATION TABS (DASHBOARD UTAMA VS ADMIN TIMESHEET) */}
-        <div className="flex bg-slate-900 p-1.5 border border-slate-800 rounded-2xl w-fit">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-              activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            📋 Sales Order & Alokasi
-          </button>
-          <button
-            onClick={() => setActiveTab('timesheet')}
-            className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-              activeTab === 'timesheet' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            ⏱️ Admin Timesheet Harian
-          </button>
+        {/* NAVIGATION TABS + STATUS SIMPAN */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex bg-slate-900 p-1.5 border border-slate-800 rounded-2xl w-fit">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📋 Sales Order & Alokasi
+            </button>
+            <button
+              onClick={() => setActiveTab('timesheet')}
+              className={`px-6 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                activeTab === 'timesheet' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ⏱️ Admin Timesheet Harian
+            </button>
+          </div>
+
+          <div className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900">
+            <span className={`w-2 h-2 rounded-full ${
+              saveState === 'saving' ? 'bg-amber-400 animate-pulse' :
+              saveState === 'error' ? 'bg-red-500' :
+              saveState === 'saved' ? 'bg-emerald-500' : 'bg-slate-600'
+            }`}></span>
+            <span className="text-slate-400">
+              {saveState === 'saving' && 'Menyimpan...'}
+              {saveState === 'saved' && 'Tersimpan (data bersama tim)'}
+              {saveState === 'error' && 'Gagal menyimpan — cek koneksi'}
+              {saveState === 'idle' && 'Belum ada perubahan'}
+            </span>
+          </div>
         </div>
 
         {notification.show && (
-          <div className="p-4 bg-emerald-950 border border-emerald-500 text-emerald-200 rounded-xl text-sm font-medium">
+          <div className={`p-4 rounded-xl text-sm font-medium border ${
+            notification.tone === 'info'
+              ? 'bg-slate-900 border-slate-700 text-slate-300'
+              : 'bg-emerald-950 border-emerald-500 text-emerald-200'
+          }`}>
             {notification.message}
           </div>
         )}
@@ -811,8 +986,8 @@ export default function SalesOrderDashboard() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <button 
-                    onClick={exportToExcel}
+                  <button
+                    onClick={exportOrdersToExcel}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <span>📥</span> Download Rekap Excel
@@ -858,7 +1033,17 @@ export default function SalesOrderDashboard() {
                       filteredOrders.map(order => (
                         <tr key={order.id} className="hover:bg-slate-950/40 transition-all align-top">
                           <td className="py-4 px-4">
-                            <div className="font-black text-white">{order.id}</div>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="font-black text-white">{order.id}</div>
+                              <button
+                                type="button"
+                                onClick={() => deleteOrder(order.id)}
+                                title="Hapus Sales Order ini"
+                                className="text-[10px] font-bold text-red-400 hover:text-red-300 border border-red-900/60 hover:border-red-500 rounded px-1.5 py-0.5 cursor-pointer transition-all"
+                              >
+                                Hapus
+                              </button>
+                            </div>
                             <div className="inline-block px-2 py-0.5 mt-1 bg-blue-500/20 text-blue-400 font-bold text-[10px] rounded">
                               Sales: {order.sales}
                             </div>
@@ -884,8 +1069,8 @@ export default function SalesOrderDashboard() {
                               </div>
                               <div>
                                 <label className="block text-[10px] font-bold text-teal-400 uppercase mb-1">Status Durasi Lapangan</label>
-                                <select 
-                                  value={order.statusDurasi} 
+                                <select
+                                  value={order.statusDurasi}
                                   onChange={(e) => updateStatusDurasi(order.id, e.target.value)}
                                   className="w-full px-2 py-1.5 bg-slate-950 border border-teal-800/60 rounded-lg text-teal-300 text-xs font-bold outline-none cursor-pointer"
                                 >
@@ -897,11 +1082,11 @@ export default function SalesOrderDashboard() {
                               </div>
                               <div>
                                 <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Catatan Aktual</label>
-                                <input 
-                                  type="text" 
-                                  value={order.catatanAktual} 
+                                <input
+                                  type="text"
+                                  value={order.catatanAktual}
                                   onChange={(e) => updateCatatanAktual(order.id, e.target.value)}
-                                  placeholder="Keterangan lapangan..." 
+                                  placeholder="Keterangan lapangan..."
                                   className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-slate-200 text-xs outline-none"
                                 />
                               </div>
@@ -912,8 +1097,8 @@ export default function SalesOrderDashboard() {
                             <div className="space-y-2">
                               <div>
                                 <label className="block text-[10px] font-bold text-amber-400 uppercase mb-1">Pilih Kode Unit</label>
-                                <select 
-                                  value={order.kodeUnit} 
+                                <select
+                                  value={order.kodeUnit}
                                   onChange={(e) => updateKodeUnit(order.id, e.target.value)}
                                   className="w-full px-2 py-1.5 bg-slate-950 border border-amber-800/60 rounded-lg text-amber-300 text-xs font-bold outline-none cursor-pointer"
                                 >
@@ -926,8 +1111,8 @@ export default function SalesOrderDashboard() {
 
                               <div>
                                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Operator</label>
-                                <select 
-                                  value={order.namaOperator} 
+                                <select
+                                  value={order.namaOperator}
                                   onChange={(e) => updateOperator(order.id, e.target.value)}
                                   className="w-full px-2 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 text-xs outline-none cursor-pointer"
                                 >
@@ -940,11 +1125,11 @@ export default function SalesOrderDashboard() {
 
                               <div>
                                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">HM Awal / BBM</label>
-                                <input 
-                                  type="text" 
-                                  value={order.hmAwal} 
+                                <input
+                                  type="text"
+                                  value={order.hmAwal}
                                   onChange={(e) => updateHmAwal(order.id, e.target.value)}
-                                  placeholder="Contoh: 1240 HM (Full)" 
+                                  placeholder="Contoh: 1240 HM (Full)"
                                   className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-slate-200 text-xs outline-none font-mono"
                                 />
                               </div>
@@ -955,8 +1140,8 @@ export default function SalesOrderDashboard() {
                             <div className="space-y-2">
                               <div>
                                 <label className="block text-[10px] font-bold text-purple-400 uppercase mb-1">Catatan Logistik / Muat</label>
-                                <textarea 
-                                  value={order.catatanLogistik} 
+                                <textarea
+                                  value={order.catatanLogistik}
                                   onChange={(e) => updateCatatanLogistik(order.id, e.target.value)}
                                   rows="2"
                                   className="w-full px-2 py-1 bg-slate-950 border border-purple-900/60 rounded text-slate-200 text-xs outline-none resize-none"
@@ -965,8 +1150,8 @@ export default function SalesOrderDashboard() {
 
                               <div>
                                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Armada Tronton Pengangkut</label>
-                                <select 
-                                  value={order.trontonUnit} 
+                                <select
+                                  value={order.trontonUnit}
                                   onChange={(e) => updateTrontonUnit(order.id, e.target.value)}
                                   className="w-full px-2 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-200 text-xs outline-none cursor-pointer"
                                 >
@@ -978,8 +1163,8 @@ export default function SalesOrderDashboard() {
 
                               <div>
                                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status Pengiriman Tronton</label>
-                                <select 
-                                  value={order.statusLogistik} 
+                                <select
+                                  value={order.statusLogistik}
                                   onChange={(e) => updateStatusLogistik(order.id, e.target.value)}
                                   className="w-full px-2 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-amber-300 text-xs font-bold outline-none cursor-pointer"
                                 >
@@ -994,7 +1179,7 @@ export default function SalesOrderDashboard() {
                           <td className="py-4 px-4 space-y-3">
                             <div className="grid grid-cols-2 gap-2">
                               <div className="space-y-1">
-                                <button 
+                                <button
                                   type="button"
                                   onClick={() => triggerCamera(order.id, 'muat')}
                                   className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] rounded border border-slate-700 transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -1007,7 +1192,7 @@ export default function SalesOrderDashboard() {
                               </div>
 
                               <div className="space-y-1">
-                                <button 
+                                <button
                                   type="button"
                                   onClick={() => triggerCamera(order.id, 'tiba')}
                                   className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] rounded border border-slate-700 transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -1021,7 +1206,7 @@ export default function SalesOrderDashboard() {
                             </div>
 
                             <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                              <button 
+                              <button
                                 type="button"
                                 onClick={() => sendLogisticsWhatsApp(order)}
                                 className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] rounded-lg shadow transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -1029,7 +1214,7 @@ export default function SalesOrderDashboard() {
                                 <span>📲</span> WA Logistik Pool
                               </button>
 
-                              <button 
+                              <button
                                 type="button"
                                 onClick={() => sendWhatsAppNotification(order)}
                                 className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg shadow transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -1037,7 +1222,7 @@ export default function SalesOrderDashboard() {
                                 <span>💬</span> WA Sales ({order.sales})
                               </button>
 
-                              <button 
+                              <button
                                 type="button"
                                 onClick={() => sendLogisticsUpdateToSales(order)}
                                 className="w-full py-1.5 bg-blue-600/80 hover:bg-blue-500 text-white font-bold text-[10px] rounded-lg shadow transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -1063,7 +1248,7 @@ export default function SalesOrderDashboard() {
                 </div>
 
                 <div className="w-full md:w-72">
-                  <input 
+                  <input
                     type="text"
                     placeholder="Cari kode unit (Contoh: EXC.08, MG-1)..."
                     value={fleetSearchQuery}
@@ -1106,7 +1291,7 @@ export default function SalesOrderDashboard() {
                         <div className="text-[10px] text-slate-300 mt-0.5 truncate">{item.class}</div>
                       </div>
 
-                      <select 
+                      <select
                         value={currentStatus}
                         onChange={(e) => updateFleetCondition(item.code, e.target.value)}
                         className="w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded text-[11px] font-bold text-white outline-none cursor-pointer"
@@ -1127,6 +1312,12 @@ export default function SalesOrderDashboard() {
             <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-8 shadow-2xl">
               <h2 className="text-xl font-black text-white mb-1">Formulir Admin Timesheet Harian</h2>
               <p className="text-xs text-amber-400 mb-6 uppercase tracking-wider font-bold">Input lengkap sesuai parameter spreadsheet rekapitulasi harian</p>
+
+              {tsFormError && (
+                <div className="mb-4 p-3 bg-red-950/60 border border-red-700 text-red-300 rounded-xl text-xs font-bold">
+                  ⚠️ {tsFormError}
+                </div>
+              )}
 
               <form onSubmit={handleAddTimesheet} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
@@ -1162,7 +1353,7 @@ export default function SalesOrderDashboard() {
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Unit Code</label>
                   <select value={tsForm.unitCode} onChange={(e) => setTsForm({...tsForm, unitCode: e.target.value})} className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-300 font-bold">
-                    {fleetDatabase.map(f => <option key={f.code} value={f.code}>{f.code} - {f.model}</option>)}
+                    {fleetDatabase.map(f => <option key={f.code} value={f.code}>{f.code} - {f.class}</option>)}
                   </select>
                 </div>
                 <div>
@@ -1233,13 +1424,59 @@ export default function SalesOrderDashboard() {
               </form>
             </div>
 
+            {/* RINGKASAN REKAP (fitur baru): per operator & per unit */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-900 border border-cyan-900/40 rounded-3xl p-6 shadow-2xl">
+                <h3 className="text-sm font-black text-cyan-300 uppercase tracking-wider mb-4">Ringkasan Jam Kerja per Operator</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {recapByOperator.length === 0 ? (
+                    <div className="text-xs text-slate-500">Belum ada data timesheet.</div>
+                  ) : recapByOperator.map(r => (
+                    <div key={r.operator} className="flex items-center justify-between px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs">
+                      <div>
+                        <div className="font-bold text-white">{r.operator}</div>
+                        <div className="text-slate-500 text-[10px]">{r.entries} entri &middot; {r.hariKerja.toFixed(2)} hari kerja alat</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-cyan-300 font-black">{r.totalHm.toFixed(2)} HM</div>
+                        {r.totalOt > 0 && <div className="text-amber-400 text-[10px] font-bold">+{r.totalOt.toFixed(1)} OT</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-yellow-900/40 rounded-3xl p-6 shadow-2xl">
+                <h3 className="text-sm font-black text-yellow-300 uppercase tracking-wider mb-4">Ringkasan Jam Kerja per Unit</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {recapByUnit.length === 0 ? (
+                    <div className="text-xs text-slate-500">Belum ada data timesheet.</div>
+                  ) : recapByUnit.map(r => (
+                    <div key={r.unitCode} className="flex items-center justify-between px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs">
+                      <div>
+                        <div className="font-bold text-amber-300 font-mono">{r.unitCode}</div>
+                        <div className="text-slate-500 text-[10px]">{r.entries} entri</div>
+                      </div>
+                      <div className="text-yellow-300 font-black">{r.totalHm.toFixed(2)} HM</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* TABEL REKAP TIMESHEET SESUAI LAMPIRAN */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl overflow-hidden">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
                 <div>
                   <h2 className="text-xl font-black text-white">Tabel Rekapitulasi Admin Timesheet</h2>
                   <p className="text-xs text-slate-400">Sinkronisasi lengkap dengan seluruh kolom pada spreadsheet laporan harian</p>
                 </div>
+                <button
+                  onClick={exportTimesheetToExcel}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span>📥</span> Download Rekap Excel
+                </button>
               </div>
 
               <div className="overflow-x-auto max-w-full">
@@ -1273,6 +1510,7 @@ export default function SalesOrderDashboard() {
                       <th className="p-3">Pencukupan</th>
                       <th className="p-3">Keterangan</th>
                       <th className="p-3">Jam Dunia / HM</th>
+                      <th className="p-3">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
@@ -1305,6 +1543,15 @@ export default function SalesOrderDashboard() {
                         <td className="p-3 text-slate-500">{ts.pencukupan || '-'}</td>
                         <td className="p-3 text-slate-300 font-sans">{ts.keterangan}</td>
                         <td className="p-3 text-purple-300 font-sans">{ts.tipeJam}</td>
+                        <td className="p-3 font-sans">
+                          <button
+                            type="button"
+                            onClick={() => deleteTimesheet(ts.id)}
+                            className="text-[10px] font-bold text-red-400 hover:text-red-300 border border-red-900/60 hover:border-red-500 rounded px-1.5 py-0.5 cursor-pointer transition-all"
+                          >
+                            Hapus
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
