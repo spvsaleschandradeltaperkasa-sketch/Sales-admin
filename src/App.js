@@ -120,6 +120,47 @@ const mapsLink = koor =>
 const waktuSekarang = () =>
   new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
+/* Membubuhkan cap waktu, lokasi, dan label langsung ke piksel foto — bukan
+   sekadar metadata terpisah — supaya bukti tidak bisa diganti tanpa merusak
+   capnya sendiri. */
+function watermarkFoto(file, lines) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const barH = Math.round(canvas.height * 0.17);
+        ctx.fillStyle = 'rgba(12, 29, 56, 0.72)';
+        ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+        const fontSize = Math.max(16, Math.round(canvas.width * 0.032));
+        ctx.fillStyle = '#ffffff';
+        ctx.textBaseline = 'top';
+        let y = canvas.height - barH + fontSize * 0.35;
+        lines.forEach((line, i) => {
+          ctx.font = `${i === 0 ? 700 : 500} ${fontSize}px Arial, sans-serif`;
+          ctx.fillText(line, fontSize * 0.7, y);
+          y += fontSize * 1.3;
+        });
+
+        URL.revokeObjectURL(objUrl);
+        canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('Gagal membuat foto bercap'))), 'image/jpeg', 0.9);
+      } catch (err) {
+        URL.revokeObjectURL(objUrl);
+        reject(err);
+      }
+    };
+    img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('Gagal memuat foto')); };
+    img.src = objUrl;
+  });
+}
+
 /* ---------------------------- UI kecil ---------------------------- */
 
 const inputClass =
@@ -168,8 +209,9 @@ const Btn = ({ kind = 'ghost', className = '', style, ...rest }) => {
   return <button {...rest} style={inline} className={`${base} ${kinds[kind]} ${className}`} />;
 };
 
-/* Kotak foto + kamera */
-function FotoBox({ label, url, waktu, koor, onCapture, note }) {
+/* Kotak foto + kamera. Foto dibubuhi cap waktu & lokasi langsung ke piksel gambar
+   (watermark), jadi bukti tidak bisa diganti tanpa merusak capnya. */
+function FotoBox({ label, url, waktu, koor, onCapture, onShare, note }) {
   return (
     <div className="border border-stone-200 rounded-xl p-3 flex gap-3">
       {url ? (
@@ -186,9 +228,12 @@ function FotoBox({ label, url, waktu, koor, onCapture, note }) {
           <a href={mapsLink(koor)} target="_blank" rel="noreferrer"
             className="text-[11px] text-sky-700 underline break-all">{koor}</a>
         )}
-        {onCapture && (
-          <div className="mt-1.5">
-            <Btn kind="small" type="button" onClick={onCapture}>{url ? 'Ambil ulang' : 'Ambil foto'}</Btn>
+        {(onCapture || onShare) && (
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {onCapture && <Btn kind="small" type="button" onClick={onCapture}>{url ? 'Ambil ulang' : 'Ambil foto'}</Btn>}
+            {onShare && url && (
+              <Btn kind="small" type="button" onClick={onShare} className="text-[#132A4E] border-[#132A4E]/30">Kirim foto ke WhatsApp</Btn>
+            )}
           </div>
         )}
       </div>
@@ -211,6 +256,7 @@ export default function DashboardDeltaPerkasa() {
 
   const fileInputRef = useRef(null);
   const captureRef = useRef({ orderId: null, jenis: null });
+  const fotoBlobRef = useRef({});
 
   /* Nomor WhatsApp — ganti dengan nomor asli sebelum dipakai di lapangan.
      Grup tidak punya nomor, jadi tombol grup membuka daftar chat agar
@@ -312,28 +358,77 @@ export default function DashboardDeltaPerkasa() {
   const handleFileCaptured = e => {
     const file = e.target.files[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
     const { orderId, jenis } = captureRef.current;
     const waktu = waktuSekarang();
+    const orderNow = orderList.find(o => o.id === orderId);
+    const labelBaris = jenis === 'hmawal' ? 'FOTO HM AWAL' : jenis === 'muat' ? 'FOTO MUAT UNIT' : 'FOTO UNIT TIBA';
+
+    const simpanFoto = async koor => {
+      const lines = [
+        `${labelBaris} · ${orderNow?.jobId || orderId}`,
+        `Unit ${orderNow?.kodeUnit || '-'} · ${waktu}`,
+        koor && koor !== '-' ? `Lokasi: ${koor}` : 'Lokasi: tidak terbaca'
+      ];
+      let blob;
+      try {
+        blob = await watermarkFoto(file, lines);
+      } catch (err) {
+        console.error('Gagal membubuhkan cap pada foto, memakai foto asli.', err);
+        blob = file;
+      }
+      const url = URL.createObjectURL(blob);
+      fotoBlobRef.current[`${orderId}-${jenis}`] = blob;
+
+      if (jenis === 'hmawal') patchOrder(orderId, { fotoHmAwalUrl: url, timestampHmAwal: waktu });
+      else if (jenis === 'muat') patchOrder(orderId, { fotoMuatUrl: url, timestampMuat: waktu, koordinatMuat: koor });
+      else patchOrder(orderId, { fotoTibaUrl: url, timestampTiba: waktu, koordinatTiba: koor });
+    };
 
     if (jenis === 'hmawal') {
-      patchOrder(orderId, { fotoHmAwalUrl: url, timestampHmAwal: waktu });
-      e.target.value = null;
-      return;
+      simpanFoto('-');
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => simpanFoto(`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`),
+        () => simpanFoto('-')
+      );
+    } else {
+      simpanFoto('-');
+    }
+    e.target.value = null;
+  };
+
+  /* Kirim foto (yang sudah bercap) langsung sebagai lampiran WhatsApp lewat
+     kotak berbagi bawaan HP. Ini satu-satunya cara foto benar-benar ikut
+     terkirim, bukan cuma teks — tautan wa.me sendiri tidak bisa membawa
+     lampiran. Kalau HP/browser tidak mendukung fitur ini, foto diunduh
+     dan WhatsApp dibuka dengan teksnya, tinggal dilampirkan manual. */
+  const shareFotoWhatsApp = async (order, jenis) => {
+    const blob = fotoBlobRef.current[`${order.id}-${jenis}`];
+    if (!blob) return showToast('Ambil fotonya dulu sebelum dikirim.', 'info');
+
+    const namaLabel = { hmawal: 'HM awal', muat: 'muat', tiba: 'tiba' }[jenis];
+    const namaFile = `foto-${jenis}-${(order.jobId || order.id).replace(/[^a-zA-Z0-9-]/g, '')}.jpg`;
+    const caption = `Foto ${namaLabel} — ${order.jobId || order.id} — unit ${order.kodeUnit || '-'} — ${order.customer}`;
+    const file = new File([blob], namaFile, { type: 'image/jpeg' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text: caption });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        console.error('Gagal membagikan foto, memakai cara unduh manual.', err);
+      }
     }
 
-    const apply = koor =>
-      patchOrder(orderId, jenis === 'muat'
-        ? { fotoMuatUrl: url, timestampMuat: waktu, koordinatMuat: koor }
-        : { fotoTibaUrl: url, timestampTiba: waktu, koordinatTiba: koor });
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => apply(`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`),
-        () => apply('-')
-      );
-    } else apply('-');
-    e.target.value = null;
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = namaFile;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('HP ini belum mendukung kirim foto langsung. Foto sudah diunduh — lampirkan manual di WhatsApp yang baru dibuka.', 'info');
+    openWa('', caption);
   };
 
   /* ---------------------------- WhatsApp ---------------------------- */
@@ -367,7 +462,7 @@ export default function DashboardDeltaPerkasa() {
     `Muat: ${o.timestampMuat}\n` + (mapsLink(o.koordinatMuat) ? `${mapsLink(o.koordinatMuat)}\n` : '') +
     `Tiba: ${o.timestampTiba}\n` + (mapsLink(o.koordinatTiba) ? `${mapsLink(o.koordinatTiba)}\n` : '') +
     (o.catatanAktual ? `\nCatatan: ${o.catatanAktual}` : '') +
-    `\n\nFoto muat dan foto tiba menyusul di chat ini.`;
+    `\n\nFoto muat dan foto tiba dikirim menyusul lewat tombol "Kirim foto ke WhatsApp".`;
 
   const waUpdateGrup = o => openWa('', teksUpdateLapangan(o));
   const waUpdateSales = o => openWa(salesPhoneBook[o.sales], teksUpdateLapangan(o));
@@ -840,7 +935,8 @@ export default function DashboardDeltaPerkasa() {
                     </div>
                     <FotoBox label="Foto HM awal" url={o.fotoHmAwalUrl} waktu={o.timestampHmAwal}
                       note="Foto layar jam meter sebelum unit digeser"
-                      onCapture={() => triggerCamera(o.id, 'hmawal')} />
+                      onCapture={() => triggerCamera(o.id, 'hmawal')}
+                      onShare={() => shareFotoWhatsApp(o, 'hmawal')} />
                   </div>
 
                   {opError[o.id] && <p className="mt-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{opError[o.id]}</p>}
@@ -1005,7 +1101,8 @@ export default function DashboardDeltaPerkasa() {
                   <div className="mt-5 grid sm:grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <FotoBox label="Foto saat muat alat" url={o.fotoMuatUrl} waktu={o.timestampMuat} koor={o.koordinatMuat}
-                        onCapture={() => triggerCamera(o.id, 'muat')} note="Titik maps ikut terekam saat foto diambil" />
+                        onCapture={() => triggerCamera(o.id, 'muat')} onShare={() => shareFotoWhatsApp(o, 'muat')}
+                        note="Titik maps ikut terekam saat foto diambil" />
                       <div className="flex gap-2">
                         <input value={o.koordinatMuat === '-' ? '' : o.koordinatMuat}
                           onChange={e => patchOrder(o.id, { koordinatMuat: e.target.value || '-' })}
@@ -1016,7 +1113,8 @@ export default function DashboardDeltaPerkasa() {
 
                     <div className="space-y-2">
                       <FotoBox label="Foto saat alat tiba" url={o.fotoTibaUrl} waktu={o.timestampTiba} koor={o.koordinatTiba}
-                        onCapture={() => triggerCamera(o.id, 'tiba')} note="Titik maps ikut terekam saat foto diambil" />
+                        onCapture={() => triggerCamera(o.id, 'tiba')} onShare={() => shareFotoWhatsApp(o, 'tiba')}
+                        note="Titik maps ikut terekam saat foto diambil" />
                       <div className="flex gap-2">
                         <input value={o.koordinatTiba === '-' ? '' : o.koordinatTiba}
                           onChange={e => patchOrder(o.id, { koordinatTiba: e.target.value || '-' })}
@@ -1210,7 +1308,7 @@ export default function DashboardDeltaPerkasa() {
       </main>
 
       <footer className="max-w-5xl mx-auto px-5 pb-10 text-[12px] text-stone-500">
-        Data tersimpan bersama untuk satu tim. Foto hanya bertahan selama sesi browser, jadi kirim ke grup WhatsApp setelah diambil.
+        Data tersimpan bersama untuk satu tim. Foto diberi cap waktu dan lokasi otomatis lalu hanya bertahan selama sesi browser — pakai tombol "Kirim foto ke WhatsApp" di setiap foto untuk mengirim gambarnya langsung, bukan cuma teks.
       </footer>
     </div>
   );
