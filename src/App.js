@@ -51,53 +51,9 @@ const TAHAP = {
   selesai: { label: 'Selesai', dot: 'bg-stone-400', chip: 'bg-stone-100 text-stone-600 border-stone-200' }
 };
 
-const DEFAULT_ORDERS = [
-  {
-    id: 'SO-7208',
-    tahap: 'lapangan',
-    tanggalOrder: '11-Sep-26',
-    customer: 'PT Mahligai Artha Sejahtera',
-    namaProyek: 'Land Clearing 44',
-    sales: 'ANS',
-    jenisAlat: 'Excavator 20 Ton - Bucket',
-    jenisSewa: 'S1',
-    rencanaDurasi: '3 Hari',
-    jumlahUnit: 1,
-    picPenerima: 'Bpk. Hendra (081298765432)',
-    catatanSales: 'Customer minta unit tiba sebelum jam 7 pagi. Akses jalan sempit, tronton besar tidak bisa masuk.',
-    jobId: '0320-0526-ANS-S1',
-    kodeUnit: 'EXC.08',
-    namaOperator: 'BAHARUDDIN',
-    posisiUnitSekarang: 'Pool Delta Parang Loe, Makassar',
-    koordinatUnitSekarang: '-5.14766, 119.43273',
-    lokasiTurun: 'Site 44, Jl. Poros Malino Km. 7, Gowa',
-    koordinatTurun: '',
-    hmAwal: '1240.5 HM, solar penuh',
-    fotoHmAwalUrl: null,
-    timestampHmAwal: '-',
-    catatanOperator: 'Bawa breaker & selang hidrolik cadangan.',
-    trontonUnit: 'SL01',
-    sopirTronton: '',
-    statusLogistik: 'Dalam perjalanan',
-    statusDurasi: 'Sesuai rencana',
-    catatanAktual: '',
-    fotoMuatUrl: null, timestampMuat: '-', koordinatMuat: '-',
-    fotoTibaUrl: null, timestampTiba: '-', koordinatTiba: '-'
-  }
-];
+const DEFAULT_ORDERS = [];
 
-const DEFAULT_TIMESHEETS = [
-  {
-    id: 'TS-1001', kodeGajiOp: '1907', kodeTagih: '2173', jobId: '0320-0526-ANS-S1',
-    tanggal: '11-Sep-26', hari: 'Jumat', operator: 'BUSTAM', attach: 'Bucket',
-    unitCode: 'EXC.92', model: 'SY215H', namaPenyewa: 'MAHLIGAI ARTHA SEJAHTERA',
-    alamat: 'BULELENG, BUNGKU PESISIR, MOROWALI', jobVia: 'ANS',
-    jamMulai: '', jamSelesai: '', durasiIstirahat: '', standby: '', totalJamKerja: '',
-    hmStart: 1030.0, hmEnd: 1032.5, totalHm: 2.5, ot: 0,
-    unitWorkingHour: 2.5, opWorkingHour: 2.5, hariKerjaAlat: 1.0,
-    pencukupan: '', keterangan: 'Cukup 200 Jam', tipeJam: 'Hour Meter'
-  }
-];
+const DEFAULT_TIMESHEETS = [];
 
 const DEFAULT_FLEET_STATUS = { 'EXC.08': 'Working', 'EXC.01': 'Ready', 'MG-1': 'Breakdown' };
 
