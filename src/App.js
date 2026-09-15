@@ -99,7 +99,16 @@ const DEFAULT_TIMESHEETS = [
   }
 ];
 
-const DEFAULT_FLEET_STATUS = { 'EXC.08': 'Bekerja', 'EXC.01': 'Siap', 'MG-1': 'Rusak' };
+const DEFAULT_FLEET_STATUS = { 'EXC.08': 'Working', 'EXC.01': 'Ready', 'MG-1': 'Breakdown' };
+
+/* Palet status armada: Ready (hijau), Working (biru), Standby (kuning), Breakdown (merah) */
+const FLEET_STATUSES = ['Ready', 'Working', 'Standby', 'Breakdown'];
+const FLEET_STATUS_STYLE = {
+  Ready: { card: 'border-emerald-200 bg-emerald-50', dot: 'bg-emerald-500', text: 'text-emerald-800' },
+  Working: { card: 'border-sky-200 bg-sky-50', dot: 'bg-sky-500', text: 'text-sky-800' },
+  Standby: { card: 'border-amber-200 bg-amber-50', dot: 'bg-amber-500', text: 'text-amber-800' },
+  Breakdown: { card: 'border-rose-200 bg-rose-50', dot: 'bg-rose-500', text: 'text-rose-800' }
+};
 
 let idCounter = 0;
 const generateId = prefix => {
@@ -462,10 +471,34 @@ export default function DashboardDeltaPerkasa() {
     `Muat: ${o.timestampMuat}\n` + (mapsLink(o.koordinatMuat) ? `${mapsLink(o.koordinatMuat)}\n` : '') +
     `Tiba: ${o.timestampTiba}\n` + (mapsLink(o.koordinatTiba) ? `${mapsLink(o.koordinatTiba)}\n` : '') +
     (o.catatanAktual ? `\nCatatan: ${o.catatanAktual}` : '') +
-    `\n\nFoto muat dan foto tiba dikirim menyusul lewat tombol "Kirim foto ke WhatsApp".`;
+    `\n\nFoto muat dan foto tiba disertakan bila didukung perangkat, atau kirim manual lewat tombol "Kirim foto ke WhatsApp".`;
 
-  const waUpdateGrup = o => openWa('', teksUpdateLapangan(o));
-  const waUpdateSales = o => openWa(salesPhoneBook[o.sales], teksUpdateLapangan(o));
+  /* Sampaikan ke grup: kalau foto muat dan/atau tiba sudah diambil, foto-foto itu
+     ikut dibagikan bersama teks lewat kotak berbagi bawaan HP. Kalau perangkat
+     tidak mendukung berbagi banyak file sekaligus, jatuh kembali ke tautan teks
+     WhatsApp biasa dan foto tetap bisa dikirim satu per satu lewat tombol di
+     setiap foto. */
+  const waUpdateGrup = async o => {
+    const namaBase = (o.jobId || o.id).replace(/[^a-zA-Z0-9-]/g, '');
+    const files = [];
+    const fotoMuat = fotoBlobRef.current[`${o.id}-muat`];
+    const fotoTiba = fotoBlobRef.current[`${o.id}-tiba`];
+    if (fotoMuat) files.push(new File([fotoMuat], `foto-muat-${namaBase}.jpg`, { type: 'image/jpeg' }));
+    if (fotoTiba) files.push(new File([fotoTiba], `foto-tiba-${namaBase}.jpg`, { type: 'image/jpeg' }));
+    const caption = teksUpdateLapangan(o);
+
+    if (files.length && navigator.canShare && navigator.canShare({ files })) {
+      try {
+        await navigator.share({ files, text: caption });
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        console.error('Gagal membagikan foto ke grup, memakai cara teks saja.', err);
+      }
+    }
+    openWa('', caption);
+    if (files.length) showToast('HP ini belum mendukung kirim foto sekaligus. Kirim foto muat/tiba satu per satu lewat tombol di setiap foto.', 'info');
+  };
   const waUpdateLogistik = o => openWa(logisticsPhone, teksUpdateLapangan(o));
 
   /* ------------------------------ sales ------------------------------ */
@@ -525,7 +558,7 @@ export default function DashboardDeltaPerkasa() {
     }
     setOpError(p => ({ ...p, [o.id]: null }));
     patchOrder(o.id, { tahap: 'siap' });
-    setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Bekerja' }));
+    setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Working' }));
     showToast(`Unit ${o.kodeUnit} dikirim ke tim lapangan. Kabari grup sekarang.`);
   };
 
@@ -562,7 +595,7 @@ export default function DashboardDeltaPerkasa() {
   /* -------------------- tutup pekerjaan (kepala operator) -------------------- */
   const closeOrder = o => {
     patchOrder(o.id, { tahap: 'selesai', statusLogistik: 'Pekerjaan ditutup' });
-    if (o.kodeUnit) setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Siap' }));
+    if (o.kodeUnit) setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Ready' }));
     setTsForm(p => ({ ...p, ...isiFormulirDariOrder(o) }));
     setTab('timesheet');
     showToast(`${o.jobId || o.id} ditutup. Data sudah masuk formulir timesheet, lengkapi jam kerja dan HM akhir.`);
@@ -645,7 +678,7 @@ export default function DashboardDeltaPerkasa() {
   const filteredFleet = fleetDatabase.filter(f =>
     (fleetKelas === 'Semua' || f.class === fleetKelas) &&
     (f.code.toLowerCase().includes(fleetQuery.toLowerCase()) || f.class.toLowerCase().includes(fleetQuery.toLowerCase())));
-  const hitungStatus = s => fleetDatabase.filter(f => (fleetStatus[f.code] || 'Siap') === s).length;
+  const hitungStatus = s => fleetDatabase.filter(f => (fleetStatus[f.code] || 'Ready') === s).length;
 
   const tabs = [
     { key: 'sales', label: 'Sales' },
@@ -877,8 +910,8 @@ export default function DashboardDeltaPerkasa() {
                       <select value={o.kodeUnit} onChange={e => patchOrder(o.id, { kodeUnit: e.target.value })} className={inputClass}>
                         <option value="">Pilih nomor unit</option>
                         {fleetDatabase.map(f => {
-                          const st = fleetStatus[f.code] || 'Siap';
-                          return <option key={f.code} value={f.code}>{f.code} — {f.class}{st !== 'Siap' ? ` (${st})` : ''}</option>;
+                          const st = fleetStatus[f.code] || 'Ready';
+                          return <option key={f.code} value={f.code}>{f.code} — {f.class}{st !== 'Ready' ? ` (${st})` : ''}</option>;
                         })}
                       </select>
                     </Field>
@@ -978,9 +1011,15 @@ export default function DashboardDeltaPerkasa() {
               <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
                 <div>
                   <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Status armada</h2>
-                  <p className="text-sm text-stone-500 mt-1">
-                    {hitungStatus('Siap')} siap · {hitungStatus('Bekerja')} bekerja · {hitungStatus('Rusak')} rusak · total {fleetDatabase.length} unit
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
+                    {FLEET_STATUSES.map(s => (
+                      <span key={s} className="inline-flex items-center gap-1.5 text-sm text-stone-600">
+                        <span className={`w-2 h-2 rounded-full ${FLEET_STATUS_STYLE[s].dot}`} />
+                        {hitungStatus(s)} {s}
+                      </span>
+                    ))}
+                    <span className="text-sm text-stone-400">· total {fleetDatabase.length} unit</span>
+                  </div>
                 </div>
                 <input value={fleetQuery} onChange={e => setFleetQuery(e.target.value)} placeholder="Cari nomor unit, misal EXC.08" className={inputClass + ' sm:w-64'} />
               </div>
@@ -998,8 +1037,8 @@ export default function DashboardDeltaPerkasa() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-96 overflow-y-auto pr-1">
                 {filteredFleet.map(f => {
-                  const st = fleetStatus[f.code] || 'Siap';
-                  const tone = st === 'Bekerja' ? 'border-sky-200 bg-sky-50' : st === 'Rusak' ? 'border-rose-200 bg-rose-50' : 'border-stone-200 bg-white';
+                  const st = fleetStatus[f.code] || 'Ready';
+                  const tone = (FLEET_STATUS_STYLE[st] || FLEET_STATUS_STYLE.Ready).card;
                   const pakai = orderList.find(o => o.kodeUnit === f.code && o.tahap !== 'selesai');
                   return (
                     <div key={f.code} className={`border rounded-xl p-3 ${tone}`}>
@@ -1008,7 +1047,7 @@ export default function DashboardDeltaPerkasa() {
                       {pakai && <div className="text-[11px] text-sky-800 truncate mt-0.5">{pakai.customer}</div>}
                       <select value={st} onChange={e => setFleetStatus(p => ({ ...p, [f.code]: e.target.value }))}
                         className="mt-2 w-full px-2 py-1 text-[12px] rounded-lg border border-stone-300 bg-white cursor-pointer outline-none">
-                        {['Siap', 'Bekerja', 'Rusak'].map(s => <option key={s}>{s}</option>)}
+                        {FLEET_STATUSES.map(s => <option key={s}>{s}</option>)}
                       </select>
                     </div>
                   );
@@ -1126,10 +1165,10 @@ export default function DashboardDeltaPerkasa() {
 
                   <div className="mt-5 flex flex-wrap gap-2">
                     <Btn kind="solid" onClick={() => waUpdateGrup(o)}>Sampaikan ke grup</Btn>
-                    <Btn onClick={() => waUpdateSales(o)}>Kabari sales {o.sales}</Btn>
                     <Btn onClick={() => waUpdateLogistik(o)}>Kabari logistik</Btn>
+                    <Btn onClick={() => deleteOrder(o.id)} className="text-rose-700 border-rose-200 hover:bg-rose-50">Hapus</Btn>
                   </div>
-                  <p className="mt-3 text-[12px] text-stone-500">Penutupan pekerjaan dilakukan oleh kepala operator, di tab Kepala operator.</p>
+                  <p className="mt-3 text-[12px] text-stone-500">Penutupan pekerjaan dilakukan oleh kepala operator, di tab Kepala operator. Hapus dipakai kalau data keliru atau unit sudah tiba dan tidak perlu direkap lagi di sini.</p>
                 </Card>
               ))}
 
@@ -1160,8 +1199,10 @@ export default function DashboardDeltaPerkasa() {
                   <p className="text-sm text-stone-500 mt-1">Ambil data dari job yang berjalan, lalu isi jam meter.</p>
                 </div>
                 <select onChange={e => { prefillFromOrder(e.target.value); e.target.value = ''; }} defaultValue="" className={inputClass + ' sm:w-72'}>
-                  <option value="">Ambil dari job berjalan</option>
-                  {dilapangan.map(o => <option key={o.id} value={o.id}>{o.jobId || o.id} — {o.customer}</option>)}
+                  <option value="">Ambil dari job</option>
+                  {[...dilapangan, ...selesai].map(o => (
+                    <option key={o.id} value={o.id}>{o.jobId || o.id} — {o.customer}{o.tahap === 'selesai' ? ' (selesai)' : ''}</option>
+                  ))}
                 </select>
               </div>
 
