@@ -2,6 +2,46 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 const STORAGE_KEY = 'delta-perkasa-board-v4';
 
+/* window.storage adalah API bawaan pratinjau Artifact di claude.ai dan TIDAK
+   tersedia kalau berkas ini dijalankan di hosting sendiri — itu sebabnya data
+   selalu hilang setelah refresh saat dipasang di luar claude.ai (setiap
+   panggilan get/set gagal diam-diam, ditangkap oleh try/catch).
+   Polyfill ini mengisi window.storage dengan localStorage browser memakai
+   bentuk API yang sama persis, supaya kode lain di file ini tidak perlu
+   diubah.
+   PENTING: localStorage tersimpan per-browser/per-perangkat. Data TIDAK
+   otomatis tersinkron antara HP sales, kepala operator, dan tim lapangan.
+   Untuk data yang benar-benar dibagikan ke seluruh tim di berbagai
+   perangkat, dashboard ini perlu dihubungkan ke backend/database sungguhan
+   (mis. Supabase, Firebase, atau API buatan sendiri) — bukan localStorage. */
+if (typeof window !== 'undefined' && !window.storage) {
+  const LS_PREFIX = 'deltaPerkasaStorage::';
+  window.storage = {
+    async get(key, shared = false) {
+      const raw = window.localStorage.getItem(LS_PREFIX + key);
+      if (raw === null) throw new Error(`Key not found: ${key}`);
+      return { key, value: raw, shared };
+    },
+    async set(key, value, shared = false) {
+      window.localStorage.setItem(LS_PREFIX + key, value);
+      return { key, value, shared };
+    },
+    async delete(key, shared = false) {
+      const existed = window.localStorage.getItem(LS_PREFIX + key) !== null;
+      window.localStorage.removeItem(LS_PREFIX + key);
+      return { key, deleted: existed, shared };
+    },
+    async list(prefix = '', shared = false) {
+      const keys = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.startsWith(LS_PREFIX + prefix)) keys.push(k.slice(LS_PREFIX.length));
+      }
+      return { keys, prefix, shared };
+    }
+  };
+}
+
 /* Warna dan tipografi identitas CV Chandra Delta Perkasa */
 const BRAND = {
   red: '#C1272D',
