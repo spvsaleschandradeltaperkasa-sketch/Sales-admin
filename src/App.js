@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
-const STORAGE_KEY = 'delta-perkasa-board-v3';
+const STORAGE_KEY = 'delta-perkasa-board-v4';
 
 /* Warna dan tipografi identitas CV Chandra Delta Perkasa */
 const BRAND = {
@@ -424,17 +424,20 @@ export default function DashboardDeltaPerkasa() {
     `Tronton ${o.trontonUnit}${o.sopirTronton ? ` (sopir ${o.sopirTronton})` : ''}\n` +
     `Customer: ${o.customer} — ${o.namaProyek}\n` +
     `Status: ${o.statusLogistik}\n\n` +
-    `Muat: ${o.timestampMuat}\n` + (mapsLink(o.koordinatMuat) ? `${mapsLink(o.koordinatMuat)}\n` : '') +
+    `Ambil unit di: ${o.posisiUnitSekarang || '-'}\n` + (mapsLink(o.koordinatUnitSekarang) ? `${mapsLink(o.koordinatUnitSekarang)}\n` : '') +
+    `Turunkan di: ${o.lokasiTurun || '-'}\n` + (mapsLink(o.koordinatTurun) ? `${mapsLink(o.koordinatTurun)}\n` : '') +
+    `\nMuat: ${o.timestampMuat}\n` + (mapsLink(o.koordinatMuat) ? `${mapsLink(o.koordinatMuat)}\n` : '') +
     `Tiba: ${o.timestampTiba}\n` + (mapsLink(o.koordinatTiba) ? `${mapsLink(o.koordinatTiba)}\n` : '') +
     (o.catatanAktual ? `\nCatatan: ${o.catatanAktual}` : '') +
     `\n\nFoto muat dan foto tiba disertakan bila didukung perangkat, atau kirim manual lewat tombol "Kirim foto ke WhatsApp".`;
 
-  /* Sampaikan ke grup: kalau foto muat dan/atau tiba sudah diambil, foto-foto itu
-     ikut dibagikan bersama teks lewat kotak berbagi bawaan HP. Kalau perangkat
-     tidak mendukung berbagi banyak file sekaligus, jatuh kembali ke tautan teks
-     WhatsApp biasa dan foto tetap bisa dikirim satu per satu lewat tombol di
-     setiap foto. */
-  const waUpdateGrup = async o => {
+  /* Kirim update ke grup atau ke logistik. Foto muat ikut kalau sudah diambil,
+     dan begitu foto tiba juga sudah diambil, foto muat & foto tiba ikut
+     berdua — supaya sopir dan tim yang dituju bisa lihat riwayat lengkap,
+     bukan cuma foto terakhir. Kalau perangkat tidak mendukung berbagi
+     banyak file sekaligus, jatuh kembali ke tautan teks WhatsApp biasa dan
+     foto tetap bisa dikirim satu per satu lewat tombol di setiap foto. */
+  const kirimUpdateLapangan = async (o, phone = '') => {
     const namaBase = (o.jobId || o.id).replace(/[^a-zA-Z0-9-]/g, '');
     const files = [];
     const fotoMuat = fotoBlobRef.current[`${o.id}-muat`];
@@ -449,13 +452,15 @@ export default function DashboardDeltaPerkasa() {
         return;
       } catch (err) {
         if (err && err.name === 'AbortError') return;
-        console.error('Gagal membagikan foto ke grup, memakai cara teks saja.', err);
+        console.error('Gagal membagikan foto, memakai cara teks saja.', err);
       }
     }
-    openWa('', caption);
+    openWa(phone, caption);
     if (files.length) showToast('HP ini belum mendukung kirim foto sekaligus. Kirim foto muat/tiba satu per satu lewat tombol di setiap foto.', 'info');
   };
-  const waUpdateLogistik = o => openWa(logisticsPhone, teksUpdateLapangan(o));
+
+  const waUpdateGrup = o => kirimUpdateLapangan(o, '');
+  const waUpdateLogistik = o => kirimUpdateLapangan(o, logisticsPhone);
 
   /* ------------------------------ sales ------------------------------ */
   const emptyForm = {
