@@ -352,24 +352,62 @@ export default function DashboardDeltaPerkasa() {
     return () => { cancelled = true; };
   }, []);
 
+  /* Simpan data terbaru selalu tersedia lewat ref, supaya bisa langsung
+     di-"flush" (disimpan seketika) kapan saja tanpa menunggu jeda debounce —
+     dipakai saat halaman ditutup, direfresh, atau tab disembunyikan, supaya
+     ketikan terakhir tidak sempat hilang. */
+  const latestDataRef = useRef({ orderList, timesheetList, fleetStatus });
+  useEffect(() => {
+    latestDataRef.current = { orderList, timesheetList, fleetStatus };
+  }, [orderList, timesheetList, fleetStatus]);
+
+  const savingRef = useRef(false);
+  const saveNow = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaveState('saving');
+    try {
+      const { orderList, timesheetList, fleetStatus } = latestDataRef.current;
+      const payload = JSON.stringify({
+        orderList: orderList.map(({ fotoMuatUrl, fotoTibaUrl, fotoHmAwalUrl, ...rest }) => rest),
+        timesheetList, fleetStatus
+      });
+      const res = await window.storage.set(STORAGE_KEY, payload, true);
+      setSaveState(res ? 'saved' : 'error');
+    } catch (err) {
+      console.error(err);
+      setSaveState('error');
+    } finally {
+      savingRef.current = false;
+    }
+  };
+  const saveNowRef = useRef(saveNow);
+  saveNowRef.current = saveNow;
+
   useEffect(() => {
     if (!isLoaded) return;
     setSaveState('saving');
-    const t = setTimeout(async () => {
-      try {
-        const payload = JSON.stringify({
-          orderList: orderList.map(({ fotoMuatUrl, fotoTibaUrl, fotoHmAwalUrl, ...rest }) => rest),
-          timesheetList, fleetStatus
-        });
-        const res = await window.storage.set(STORAGE_KEY, payload, true);
-        setSaveState(res ? 'saved' : 'error');
-      } catch (err) {
-        console.error(err);
-        setSaveState('error');
-      }
-    }, 600);
+    const t = setTimeout(() => { saveNowRef.current(); }, 400);
     return () => clearTimeout(t);
   }, [orderList, timesheetList, fleetStatus, isLoaded]);
+
+  /* Jaring pengaman: begitu tab disembunyikan atau halaman mau ditutup
+     (refresh termasuk), langsung simpan seketika, jangan menunggu jeda
+     debounce di atas. Ini yang mencegah ketikan terakhir hilang saat
+     pengguna refresh cepat setelah mengubah data. */
+  useEffect(() => {
+    if (!isLoaded) return;
+    const flush = () => { saveNowRef.current(); };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+    };
+  }, [isLoaded]);
 
   const patchOrder = (id, patch) => setOrderList(prev => prev.map(o => (o.id === id ? { ...o, ...patch } : o)));
 
