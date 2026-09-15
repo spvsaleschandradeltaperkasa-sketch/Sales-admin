@@ -2,6 +2,37 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 const STORAGE_KEY = 'delta-perkasa-board-v3';
 
+/* Warna dan tipografi identitas CV Chandra Delta Perkasa */
+const BRAND = {
+  red: '#C1272D',
+  redDark: '#9E1F24',
+  navy: '#132A4E',
+  navyDeep: '#0C1D38',
+  sand: '#F5F1E8'
+};
+
+/* Logo asli perusahaan, disematkan sebagai data URI agar tidak bergantung pada file eksternal */
+const LOGO_DATA_URI =
+  'data:image/jpeg;base64,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';
+
+/* Wordmark khas: DELTA (navy, tegas) dengan aksen segitiga merah dari logo */
+function DeltaWordmark({ tone = 'light' }) {
+  const isLight = tone === 'light';
+  return (
+    <div className="flex items-center gap-3">
+      <img src={LOGO_DATA_URI} alt="Logo Delta Perkasa" className="h-11 w-auto rounded-[6px] shadow-[0_2px_10px_rgba(0,0,0,0.25)]" />
+      <div className="leading-tight">
+        <div className={`font-['Space_Grotesk'] font-bold text-lg tracking-tight ${isLight ? 'text-white' : 'text-[#132A4E]'}`}>
+          DELTA <span style={{ color: BRAND.red }}>PERKASA</span>
+        </div>
+        <div className={`text-[10.5px] tracking-wide ${isLight ? 'text-white/60' : 'text-stone-500'}`}>
+          CV Chandra Delta Perkasa
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * ALUR KERJA
  * 1. Sales        : buat order + catatan untuk kepala operator
@@ -92,7 +123,7 @@ const waktuSekarang = () =>
 /* ---------------------------- UI kecil ---------------------------- */
 
 const inputClass =
-  'w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition';
+  'w-full px-3 py-2.5 bg-white border border-stone-300 rounded-lg text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-[#132A4E] focus:ring-2 focus:ring-[#132A4E]/10 transition';
 
 function Field({ label, hint, children }) {
   return (
@@ -123,14 +154,18 @@ const Empty = ({ children }) => (
   </div>
 );
 
-const Btn = ({ kind = 'ghost', className = '', ...rest }) => {
+const Btn = ({ kind = 'ghost', className = '', style, ...rest }) => {
   const base = 'text-sm font-semibold rounded-lg transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
   const kinds = {
-    solid: 'px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white',
+    solid: 'px-5 py-2.5 text-white hover:brightness-110',
+    accent: 'px-5 py-2.5 text-white hover:brightness-110',
     ghost: 'px-4 py-2.5 border border-stone-300 bg-white hover:bg-stone-50 text-stone-800',
     small: 'px-3 py-1.5 text-[12px] border border-stone-300 bg-white hover:bg-stone-50 text-stone-800'
   };
-  return <button {...rest} className={`${base} ${kinds[kind]} ${className}`} />;
+  const inline = kind === 'solid' ? { backgroundColor: BRAND.navy, ...style }
+    : kind === 'accent' ? { backgroundColor: BRAND.red, ...style }
+    : style;
+  return <button {...rest} style={inline} className={`${base} ${kinds[kind]} ${className}`} />;
 };
 
 /* Kotak foto + kamera */
@@ -399,13 +434,6 @@ export default function DashboardDeltaPerkasa() {
     showToast(`Unit ${o.kodeUnit} dikirim ke tim lapangan. Kabari grup sekarang.`);
   };
 
-  /* ----------------------------- lapangan ---------------------------- */
-  const closeOrder = o => {
-    patchOrder(o.id, { tahap: 'selesai', statusLogistik: 'Pekerjaan ditutup' });
-    if (o.kodeUnit) setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Siap' }));
-    showToast(`${o.jobId || o.id} ditutup. Unit ${o.kodeUnit} kembali siap.`);
-  };
-
   /* ----------------------------- timesheet --------------------------- */
   const emptyTs = {
     kodeGajiOp: '', kodeTagih: '', jobId: '', tanggal: '', hari: '', operator: operatorDatabase[0],
@@ -417,17 +445,32 @@ export default function DashboardDeltaPerkasa() {
   const [tsError, setTsError] = useState('');
   const setTs = (k, v) => setTsForm(p => ({ ...p, [k]: v }));
 
+  const isiFormulirDariOrder = (o, d = new Date()) => ({
+    jobId: o.jobId,
+    operator: o.namaOperator || operatorDatabase[0],
+    unitCode: o.kodeUnit || 'EXC.01',
+    namaPenyewa: o.customer.toUpperCase(),
+    alamat: (o.lokasiTurun || '').toUpperCase(),
+    jobVia: o.sales,
+    tanggal: `${pad(d.getDate())}-${d.toLocaleString('id-ID', { month: 'short' })}-${String(d.getFullYear()).slice(-2)}`,
+    hari: d.toLocaleDateString('id-ID', { weekday: 'long' }),
+    hmStart: (o.hmAwal && o.hmAwal.match(/[\d.]+/)) ? o.hmAwal.match(/[\d.]+/)[0] : ''
+  });
+
   const prefillFromOrder = orderId => {
     const o = orderList.find(x => x.id === orderId);
     if (!o) return;
-    const d = new Date();
-    setTsForm(p => ({
-      ...p, jobId: o.jobId, operator: o.namaOperator || p.operator, unitCode: o.kodeUnit || p.unitCode,
-      namaPenyewa: o.customer.toUpperCase(), alamat: (o.lokasiTurun || '').toUpperCase(), jobVia: o.sales,
-      tanggal: `${pad(d.getDate())}-${d.toLocaleString('id-ID', { month: 'short' })}-${String(d.getFullYear()).slice(-2)}`,
-      hari: d.toLocaleDateString('id-ID', { weekday: 'long' })
-    }));
+    setTsForm(p => ({ ...p, ...isiFormulirDariOrder(o) }));
     showToast(`Data ${o.jobId || o.id} dimuat ke formulir.`);
+  };
+
+  /* -------------------- tutup pekerjaan (kepala operator) -------------------- */
+  const closeOrder = o => {
+    patchOrder(o.id, { tahap: 'selesai', statusLogistik: 'Pekerjaan ditutup' });
+    if (o.kodeUnit) setFleetStatus(p => ({ ...p, [o.kodeUnit]: 'Siap' }));
+    setTsForm(p => ({ ...p, ...isiFormulirDariOrder(o) }));
+    setTab('timesheet');
+    showToast(`${o.jobId || o.id} ditutup. Data sudah masuk formulir timesheet, lengkapi jam kerja dan HM akhir.`);
   };
 
   const addTimesheet = e => {
@@ -517,22 +560,35 @@ export default function DashboardDeltaPerkasa() {
   ];
 
   if (!isLoaded) {
-    return <div className="min-h-screen bg-stone-100 flex items-center justify-center text-stone-500 text-sm">Memuat papan kerja…</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: BRAND.navyDeep }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&display=swap');`}</style>
+        <div className="flex flex-col items-center gap-3">
+          <img src={LOGO_DATA_URI} alt="Logo Delta Perkasa" className="h-16 w-auto animate-pulse" />
+          <div className="text-white/50 text-sm font-['Space_Grotesk']">Memuat papan kerja…</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900">
+    <div className="min-h-screen text-stone-900" style={{ backgroundColor: BRAND.sand, fontFamily: "'Inter', sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');`}</style>
       <input type="file" accept="image/*" capture="environment" ref={fileInputRef} onChange={handleFileCaptured} className="hidden" />
 
-      <header className="bg-stone-900 text-stone-100">
-        <div className="max-w-5xl mx-auto px-5 py-5 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="text-[11px] tracking-wide text-amber-400 font-semibold">CV Chandra Delta Perkasa</div>
-            <h1 className="text-xl font-semibold mt-0.5">Papan kerja rental alat berat</h1>
-            <p className="text-[13px] text-stone-400 mt-1">Sales buat order, kepala operator tentukan unit, lapangan yang geser dan rekam bukti.</p>
-          </div>
-          <div className="flex items-center gap-2 text-[12px] text-stone-400">
-            <span className={`w-2 h-2 rounded-full ${saveState === 'saving' ? 'bg-amber-400' : saveState === 'error' ? 'bg-rose-500' : saveState === 'saved' ? 'bg-emerald-500' : 'bg-stone-600'}`} />
+      {/* Masthead: navy dalam, aksen merah tipis, motif segitiga samar mengikuti bentuk logo */}
+      <header className="relative overflow-hidden" style={{ backgroundColor: BRAND.navyDeep }}>
+        <svg className="absolute -top-10 -right-16 w-72 h-72 opacity-[0.07] pointer-events-none" viewBox="0 0 100 100">
+          <polygon points="50,4 96,92 4,92" fill={BRAND.red} />
+        </svg>
+        <svg className="absolute bottom-0 left-1/3 w-40 h-40 opacity-[0.05] pointer-events-none" viewBox="0 0 100 100">
+          <polygon points="50,4 96,92 4,92" fill="white" />
+        </svg>
+
+        <div className="relative max-w-5xl mx-auto px-5 pt-6 pb-5 flex flex-wrap items-center justify-between gap-4">
+          <DeltaWordmark tone="light" />
+          <div className="flex items-center gap-2 text-[12px] text-white/60">
+            <span className={`w-2 h-2 rounded-full ${saveState === 'saving' ? 'bg-amber-400' : saveState === 'error' ? 'bg-rose-400' : saveState === 'saved' ? 'bg-emerald-400' : 'bg-white/30'}`} />
             {saveState === 'saving' && 'Menyimpan…'}
             {saveState === 'saved' && 'Tersimpan, terlihat satu tim'}
             {saveState === 'error' && 'Gagal menyimpan, cek koneksi'}
@@ -540,7 +596,12 @@ export default function DashboardDeltaPerkasa() {
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-5 pb-5">
+        <div className="relative max-w-5xl mx-auto px-5">
+          <h1 className="font-['Space_Grotesk'] font-semibold text-xl text-white">Papan kerja rental alat berat</h1>
+          <p className="text-[13px] text-white/55 mt-1 max-w-xl">Sales buat order, kepala operator tentukan unit, lapangan yang geser dan rekam bukti.</p>
+        </div>
+
+        <div className="relative max-w-5xl mx-auto px-5 pt-5 pb-6">
           <div className="flex items-stretch gap-2 overflow-x-auto">
             {[
               { n: 1, t: 'Sales buat order', s: 'Lengkap dengan catatan' },
@@ -548,24 +609,30 @@ export default function DashboardDeltaPerkasa() {
               { n: 3, t: 'Lapangan geser unit', s: `${dilapangan.length} sedang jalan` },
               { n: 4, t: 'Timesheet', s: `${timesheetList.length} baris terekam` }
             ].map(s => (
-              <div key={s.n} className="flex-1 min-w-[150px] bg-stone-800/70 rounded-xl px-3 py-2.5 border border-stone-700/60">
-                <div className="text-[11px] text-amber-400 font-semibold">Tahap {s.n}</div>
-                <div className="text-[13px] font-semibold mt-0.5">{s.t}</div>
-                <div className="text-[11px] text-stone-400">{s.s}</div>
+              <div key={s.n} className="flex-1 min-w-[150px] rounded-xl px-3.5 py-3 border border-white/10" style={{ backgroundColor: 'rgba(255,255,255,0.045)' }}>
+                <div className="text-[11px] font-semibold" style={{ color: BRAND.red }}>Tahap {s.n}</div>
+                <div className="text-[13px] font-semibold mt-0.5 text-white">{s.t}</div>
+                <div className="text-[11px] text-white/45">{s.s}</div>
               </div>
             ))}
           </div>
         </div>
       </header>
 
-      <div className="sticky top-0 z-20 bg-stone-100/95 backdrop-blur border-b border-stone-200">
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-stone-200">
         <div className="max-w-5xl mx-auto px-5 flex gap-1 overflow-x-auto">
           {tabs.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition whitespace-nowrap cursor-pointer ${
-                tab === t.key ? 'border-stone-900 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-800'}`}>
+              className="px-4 py-3.5 text-sm font-semibold border-b-[3px] -mb-px transition whitespace-nowrap cursor-pointer"
+              style={tab === t.key
+                ? { borderColor: BRAND.red, color: BRAND.navy }
+                : { borderColor: 'transparent', color: '#78716c' }}>
               {t.label}
-              {t.count > 0 && <span className="ml-2 px-1.5 py-0.5 rounded-full bg-amber-400 text-stone-900 text-[11px] font-bold">{t.count}</span>}
+              {t.count > 0 && (
+                <span className="ml-2 px-1.5 py-0.5 rounded-full text-white text-[11px] font-bold" style={{ backgroundColor: BRAND.red }}>
+                  {t.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -585,7 +652,7 @@ export default function DashboardDeltaPerkasa() {
         {tab === 'sales' && (
           <>
             <Card className="p-6">
-              <h2 className="text-lg font-semibold">Buat order baru</h2>
+              <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Buat order baru</h2>
               <p className="text-sm text-stone-500 mt-1 mb-6">Order langsung masuk antrean kepala operator untuk ditentukan nomor unit dan Job ID.</p>
 
               <form onSubmit={submitOrder} className="space-y-5">
@@ -644,12 +711,12 @@ export default function DashboardDeltaPerkasa() {
                   </Field>
                 </div>
 
-                <Btn kind="solid" type="submit" className="w-full sm:w-auto py-3">Kirim ke kepala operator</Btn>
+                <Btn kind="accent" type="submit" className="w-full sm:w-auto py-3">Kirim ke kepala operator</Btn>
               </form>
             </Card>
 
             <section className="space-y-3">
-              <h2 className="text-lg font-semibold">Order yang sudah dibuat</h2>
+              <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Order yang sudah dibuat</h2>
               {orderList.length === 0 ? <Empty>Belum ada order. Isi formulir di atas untuk memulai.</Empty> :
                 orderList.map(o => (
                   <Card key={o.id} className="p-5">
@@ -676,7 +743,7 @@ export default function DashboardDeltaPerkasa() {
           <>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold">Antrean alokasi unit</h2>
+                <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Antrean alokasi unit</h2>
                 <p className="text-sm text-stone-500 mt-1">Tentukan nomor unit yang digeser, posisinya sekarang, lokasi turun, dan HM awal.</p>
               </div>
               <Btn kind="small" onClick={exportOrders}>Unduh rekap order</Btn>
@@ -684,7 +751,7 @@ export default function DashboardDeltaPerkasa() {
 
             {antrianOperator.length === 0 ? <Empty>Antrean kosong. Order baru dari sales akan muncul di sini.</Empty> :
               antrianOperator.map(o => (
-                <Card key={o.id} className="p-6 border-l-4 border-l-amber-400">
+                <Card key={o.id} className="p-6 border-l-4 border-l-[#C1272D]">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -779,7 +846,7 @@ export default function DashboardDeltaPerkasa() {
                   {opError[o.id] && <p className="mt-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{opError[o.id]}</p>}
 
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Btn kind="solid" onClick={() => releaseOrder(o)}>Kirim ke tim lapangan</Btn>
+                    <Btn kind="accent" onClick={() => releaseOrder(o)}>Kirim ke tim lapangan</Btn>
                     <Btn onClick={() => waKeLogistik(o)}>Kabari logistik</Btn>
                     <Btn onClick={() => waKeGrup(o)}>Kabari grup</Btn>
                   </div>
@@ -798,7 +865,12 @@ export default function DashboardDeltaPerkasa() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Chip tahap={o.tahap} />
-                      {o.tahap !== 'selesai' && <Btn kind="small" onClick={() => waKeGrup(o)}>Kabari grup</Btn>}
+                      {o.tahap !== 'selesai' && (
+                        <>
+                          <Btn kind="small" onClick={() => waKeGrup(o)}>Kabari grup</Btn>
+                          <Btn kind="small" onClick={() => closeOrder(o)}>Tutup pekerjaan</Btn>
+                        </>
+                      )}
                     </div>
                   </Card>
                 ))}
@@ -809,7 +881,7 @@ export default function DashboardDeltaPerkasa() {
             <Card className="p-6">
               <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold">Status armada</h2>
+                  <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Status armada</h2>
                   <p className="text-sm text-stone-500 mt-1">
                     {hitungStatus('Siap')} siap · {hitungStatus('Bekerja')} bekerja · {hitungStatus('Rusak')} rusak · total {fleetDatabase.length} unit
                   </p>
@@ -821,7 +893,8 @@ export default function DashboardDeltaPerkasa() {
                 {kelasList.map(k => (
                   <button key={k} onClick={() => setFleetKelas(k)}
                     className={`px-3 py-1.5 text-[12px] font-semibold rounded-full border transition cursor-pointer ${
-                      fleetKelas === k ? 'bg-stone-900 text-white border-stone-900' : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'}`}>
+                      fleetKelas === k ? 'text-white border-transparent' : 'bg-white border-stone-300 text-stone-600 hover:bg-stone-50'}`}
+                    style={fleetKelas === k ? { backgroundColor: BRAND.navy } : undefined}>
                     {k}
                   </button>
                 ))}
@@ -853,7 +926,7 @@ export default function DashboardDeltaPerkasa() {
         {tab === 'lapangan' && (
           <>
             <div>
-              <h2 className="text-lg font-semibold">Perintah geser unit</h2>
+              <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Perintah geser unit</h2>
               <p className="text-sm text-stone-500 mt-1">Data dari kepala operator. Tentukan tronton dan sopir, lalu rekam foto serta titik maps saat muat dan tiba.</p>
             </div>
 
@@ -863,9 +936,9 @@ export default function DashboardDeltaPerkasa() {
                   {/* Nomor unit ditonjolkan untuk sopir tronton */}
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="bg-stone-900 text-white rounded-xl px-4 py-3 text-center shrink-0">
+                      <div className="text-white rounded-xl px-4 py-3 text-center shrink-0" style={{ backgroundColor: BRAND.navy }}>
                         <div className="text-[10px] text-stone-400">Unit digeser</div>
-                        <div className="text-xl font-bold font-mono">{o.kodeUnit || '—'}</div>
+                        <div className="text-xl font-bold font-['Space_Grotesk']">{o.kodeUnit || '—'}</div>
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -957,8 +1030,8 @@ export default function DashboardDeltaPerkasa() {
                     <Btn kind="solid" onClick={() => waUpdateGrup(o)}>Sampaikan ke grup</Btn>
                     <Btn onClick={() => waUpdateSales(o)}>Kabari sales {o.sales}</Btn>
                     <Btn onClick={() => waUpdateLogistik(o)}>Kabari logistik</Btn>
-                    <Btn onClick={() => closeOrder(o)}>Tutup pekerjaan</Btn>
                   </div>
+                  <p className="mt-3 text-[12px] text-stone-500">Penutupan pekerjaan dilakukan oleh kepala operator, di tab Kepala operator.</p>
                 </Card>
               ))}
 
@@ -985,7 +1058,7 @@ export default function DashboardDeltaPerkasa() {
             <Card className="p-6">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
                 <div>
-                  <h2 className="text-lg font-semibold">Timesheet harian</h2>
+                  <h2 className="text-lg font-semibold font-['Space_Grotesk'] text-[#132A4E]">Timesheet harian</h2>
                   <p className="text-sm text-stone-500 mt-1">Ambil data dari job yang berjalan, lalu isi jam meter.</p>
                 </div>
                 <select onChange={e => { prefillFromOrder(e.target.value); e.target.value = ''; }} defaultValue="" className={inputClass + ' sm:w-72'}>
